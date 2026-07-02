@@ -41,8 +41,12 @@ export function HomePage() {
   const scenarios = useLiveQuery(() => db.scenarios.toArray(), []);
 
   const dueReviewCount = useLiveQuery(async () => {
-    const cards = await db.reviewCards.toArray();
-    return cards.filter((c) => isDue(c)).length;
+    const [cards, errors] = await Promise.all([
+      db.reviewCards.toArray(),
+      db.errorRecords.toArray(),
+    ]);
+    const validErrorIds = new Set(errors.map((e) => e.id));
+    return cards.filter((c) => validErrorIds.has(c.errorRecordId) && isDue(c)).length;
   }, []);
 
   const practiceStreak = useLiveQuery(async () => {

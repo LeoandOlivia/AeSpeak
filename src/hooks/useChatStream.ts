@@ -1,30 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { db } from '@/lib/db';
 import {
-  getSpeakableText,
+  NATURAL_EXPRESSION_HINT,
   OPENING_USER_TRIGGER,
   parseAssistantContent,
 } from '@/lib/prompts/practice-guide';
+import { buildPracticeLlmHistory, buildLlmHistory } from '@/lib/services/chat-history';
 import {
   addMessage,
   buildExpressionHintForUserMessage,
   updateMessage,
 } from '@/lib/services/conversation';
-import {
-  isRoleplayScenario,
-  resolveScenarioSystemPrompt,
-} from '@/lib/services/scenario-prompt';
+import { isRoleplayScenario, resolveScenarioSystemPrompt } from '@/lib/services/scenario-prompt';
 import { streamChat } from '@/lib/providers/chain';
 import type { LlmMessage } from '@/lib/providers/types';
 import { parseApiErrorMessage } from '@/lib/providers/types';
-import { showError } from '@/lib/toast';
+import { ensureOnlineOrToast, showError } from '@/lib/toast';
 import type { Scenario, UserSettings } from '@/types';
 
 interface UseChatStreamOptions {
   conversationId: string;
   scenario?: Scenario;
   settings: UserSettings;
-  onStreamEnd?: () => void;
   onAssistantComplete?: (messageId: string, content: string) => void;
 }
 
@@ -32,18 +29,17 @@ export function useChatStream({
   conversationId,
   scenario,
   settings,
-  onStreamEnd,
   onAssistantComplete,
 }: UseChatStreamOptions) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
-  const [assistantHints, setAssistantHints] = useState<Record<string, string>>({});
+  const [naturalHints, setNaturalHints] = useState<Record<string, string>>({});
   const abortRef = useRef<AbortController | null>(null);
   const onCompleteRef = useRef(onAssistantComplete);
   onCompleteRef.current = onAssistantComplete;
 
   useEffect(() => {
-    setAssistantHints({});
+    setNaturalHints({});
   }, [conversationId]);
 
   const streamAssistantReply = useCallback(
@@ -80,57 +76,30 @@ export function useChatStream({
       } finally {
         setIsStreaming(false);
         abortRef.current = null;
-        onStreamEnd?.();
       }
     },
-    [conversationId, settings, onStreamEnd],
+    [conversationId, settings],
   );
 
-  const attachFallbackHint = useCallback((assistantId: string, content: string, hint: string) => {
-    const parsed = parseAssistantContent(content);
-    if (!parsed.hint) {
-      setAssistantHints((prev) => ({ ...prev, [assistantId]: hint }));
-    }
-  }, []);
-
-  const buildHistoryMessages = useCallback(async (): Promise<LlmMessage[]> => {
-    const history = await db.messages
-      .where('conversationId')
-      .equals(conversationId)
-      .sortBy('createdAt');
-
-    const llmMessages: LlmMessage[] = [];
-    if (scenario) {
-      llmMessages.push({ role: 'system', content: resolveScenarioSystemPrompt(scenario) });
-    }
-    for (const m of history) {
-      if (m.role === 'user' || m.role === 'assistant') {
-        if (m.status === 'complete' && m.content.trim()) {
-          const content =
-            m.role === 'assistant' ? getSpeakableText(m.content) : m.content;
-          llmMessages.push({ role: m.role, content });
-        }
+  const maybeAttachNaturalHint = useCallback(
+    (assistantId: string, content: string, hint: string) => {
+      if (hint !== NATURAL_EXPRESSION_HINT) return;
+      if (!parseAssistantContent(content).hint) {
+        setNaturalHints((prev) => ({ ...prev, [assistantId]: hint }));
       }
-    }
-    return llmMessages;
-  }, [conversationId, scenario]);
+    },
+    [],
+  );
 
   const sendOpening = useCallback(async () => {
     if (!scenario || isStreaming) return;
 
-    const count = await db.messages
-      .where('conversationId')
-      .equals(conversationId)
-      .count();
+    const count = await db.messages.where('conversationId').equals(conversationId).count();
     if (count > 0) return;
-
-    if (!navigator.onLine) {
-      showError('Network unavailable', 'Check your connection and try again');
-      return;
-    }
+    if (!ensureOnlineOrToast()) return;
 
     const llmMessages: LlmMessage[] = [
-      { role: 'system', content: resolveScenarioSystemPrompt(scenario) },
+      { role: 'system', content: resolveScenarioSystemPrompt(scenario, settings.practiceDifficulty) },
       { role: 'user', content: OPENING_USER_TRIGGER },
     ];
 
@@ -139,17 +108,13 @@ export function useChatStream({
     } catch {
       // toast + lastError already set
     }
-  }, [scenario, isStreaming, conversationId, streamAssistantReply]);
+  }, [scenario, isStreaming, conversationId, streamAssistantReply, settings.practiceDifficulty]);
 
   const sendUserMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || isStreaming) return;
-
-      if (!navigator.onLine) {
-        showError('Network unavailable', 'Check your connection and try again');
-        return;
-      }
+      if (!ensureOnlineOrToast()) return;
 
       setLastError(null);
 
@@ -168,11 +133,14 @@ export function useChatStream({
           );
         }
 
-        const llmMessages = await buildHistoryMessages();
+        const llmMessages = scenario
+          ? await buildPracticeLlmHistory(conversationId, scenario, settings.practiceDifficulty)
+          : await buildLlmHistory(conversationId);
+
         const { id: assistantId, content } = await streamAssistantReply(llmMessages);
 
         if (pendingHint) {
-          attachFallbackHint(assistantId, content, pendingHint);
+          maybeAttachNaturalHint(assistantId, content, pendingHint);
         }
       } catch {
         // toast + lastError already set
@@ -183,9 +151,8 @@ export function useChatStream({
       scenario,
       settings,
       isStreaming,
-      buildHistoryMessages,
       streamAssistantReply,
-      attachFallbackHint,
+      maybeAttachNaturalHint,
     ],
   );
 
@@ -195,8 +162,6 @@ export function useChatStream({
       .where('conversationId')
       .equals(conversationId)
       .sortBy('createdAt');
-    const failed = [...msgs].reverse().find((m) => m.status === 'failed');
-    if (failed) await db.messages.delete(failed.id);
     const lastUser = [...msgs].reverse().find((m) => m.role === 'user');
     if (lastUser && lastUser.content !== OPENING_USER_TRIGGER) {
       await sendUserMessage(lastUser.content);
@@ -214,7 +179,7 @@ export function useChatStream({
     isStreaming,
     lastError,
     clearError,
-    assistantHints,
+    naturalHints,
   };
 }
 
@@ -222,12 +187,16 @@ export function useReviewChatStream({
   conversationId,
   systemPrompt,
   settings,
+  onAssistantComplete,
 }: {
   conversationId: string;
   systemPrompt: string;
   settings: UserSettings;
+  onAssistantComplete?: (messageId: string, content: string) => void;
 }) {
   const [isStreaming, setIsStreaming] = useState(false);
+  const onCompleteRef = useRef(onAssistantComplete);
+  onCompleteRef.current = onAssistantComplete;
 
   const sendUserMessage = useCallback(
     async (text: string) => {
@@ -235,21 +204,7 @@ export function useReviewChatStream({
       if (!trimmed || isStreaming) return;
 
       await addMessage(conversationId, 'user', trimmed);
-      const history = await db.messages
-        .where('conversationId')
-        .equals(conversationId)
-        .sortBy('createdAt');
-
-      const llmMessages: LlmMessage[] = [{ role: 'system', content: systemPrompt }];
-      for (const m of history) {
-        if (m.role === 'user' || m.role === 'assistant') {
-          if (m.status === 'complete' && m.content.trim()) {
-            const content =
-              m.role === 'assistant' ? getSpeakableText(m.content) : m.content;
-            llmMessages.push({ role: m.role, content });
-          }
-        }
-      }
+      const llmMessages = await buildLlmHistory(conversationId, systemPrompt);
 
       const assistant = await addMessage(conversationId, 'assistant', '', 'streaming');
       setIsStreaming(true);
@@ -264,6 +219,7 @@ export function useReviewChatStream({
           },
         });
         await updateMessage(assistant.id, { content, status: 'complete' });
+        onCompleteRef.current?.(assistant.id, content);
       } catch (e) {
         const friendly = e instanceof Error ? parseApiErrorMessage(e.message) : 'Review chat failed';
         showError('Review chat failed', friendly);

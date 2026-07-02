@@ -104,15 +104,21 @@ export class EspeakDatabase extends Dexie {
           await table.update(row.id, { whisperModel: row.whisperModel ?? '' });
         }
       });
+    this.version(9)
+      .stores(STORE_SCHEMA)
+      .upgrade(async (tx) => {
+        const table = tx.table<UserSettings, number>('userSettings');
+        const all = await table.toArray();
+        for (const row of all) {
+          await table.update(row.id, {
+            practiceDifficulty: row.practiceDifficulty ?? 'intermediate',
+          });
+        }
+      });
   }
 }
 
 export const db = new EspeakDatabase();
-
-export async function getUserSettings(): Promise<UserSettings> {
-  const row = await db.userSettings.get(1);
-  return row ? { ...DEFAULT_SETTINGS, ...row, id: 1 } : { ...DEFAULT_SETTINGS };
-}
 
 export async function saveUserSettings(settings: UserSettings): Promise<void> {
   await db.userSettings.put({ ...DEFAULT_SETTINGS, ...settings, id: 1 });

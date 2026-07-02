@@ -82,10 +82,3 @@ export async function validateStt(settings: UserSettings): Promise<void> {
   const p = getSttList(settings)[0];
   await p.validate(settings);
 }
-
-export async function validateTts(settings: UserSettings): Promise<void> {
-  const p = getTtsList(settings)[0];
-  await p.validate(settings);
-}
-
-export { getLlm, getSttList, getTtsList };

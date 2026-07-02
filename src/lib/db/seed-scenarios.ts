@@ -4,7 +4,7 @@ import { buildPracticeSystemPrompt } from '@/lib/prompts/practice-guide';
 import { SCENARIO_SEEDS } from '@/lib/db/scenario-definitions';
 import { db } from './index';
 
-const SEED_VERSION = 6;
+const SEED_VERSION = 7;
 
 export async function seedScenarios(): Promise<void> {
   const count = await db.scenarios.count();
@@ -20,7 +20,13 @@ export async function seedScenarios(): Promise<void> {
     category: s.category,
     difficulty: 'intermediate',
     characterRole: s.characterRole,
-    systemPrompt: buildPracticeSystemPrompt(s.characterRole, s.scene, s.title, s.category),
+    systemPrompt: buildPracticeSystemPrompt(
+      s.characterRole,
+      s.scene,
+      s.title,
+      s.category,
+      s.suggestedVocab,
+    ),
     suggestedVocab: s.suggestedVocab,
     seedVersion: SEED_VERSION,
   }));
@@ -42,5 +48,3 @@ export async function initDatabase(): Promise<void> {
   await seedScenarios();
   await ensureDefaultSettings();
 }
-
-export { SCENARIO_SEEDS as SEEDS };

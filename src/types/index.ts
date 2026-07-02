@@ -1,4 +1,11 @@
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
+/** Global practice difficulty — controls AI vocabulary and sentence complexity. */
+export type PracticeDifficultyLevel =
+  | 'starter'
+  | 'elementary'
+  | 'intermediate'
+  | 'upper'
+  | 'advanced';
 export type ScenarioCategory =
   | 'daily_life'
   | 'business'
@@ -35,6 +42,8 @@ export interface UserSettings {
   /** Whisper 模型：官方 whisper-1；OpenRouter 用 openai/whisper-1 */
   whisperModel: string;
   mockVoice: boolean;
+  /** Global difficulty for practice chat, hints, and review. */
+  practiceDifficulty: PracticeDifficultyLevel;
 }
 
 export interface Scenario {
@@ -126,12 +135,6 @@ export const MAIN_SCENE_ORDER: ScenarioCategory[] = [
   'free_chat',
 ];
 
-export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  beginner: 'Beginner',
-  intermediate: 'Intermediate',
-  advanced: 'Advanced',
-};
-
 export const OPENAI_TTS_VOICES: [string, string][] = [
   ['nova', 'Nova (female, recommended)'],
   ['shimmer', 'Shimmer (female)'],
@@ -162,4 +165,5 @@ export const DEFAULT_SETTINGS: UserSettings = {
   ttsModel: 'tts-1',
   whisperModel: '',
   mockVoice: false,
+  practiceDifficulty: 'intermediate',
 };

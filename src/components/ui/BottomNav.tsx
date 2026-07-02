@@ -113,4 +113,3 @@ function SettingsIcon({ active }: { active: boolean }) {
   );
 }
 
-export const BOTTOM_NAV_HEIGHT = 'var(--bottom-nav-height)';

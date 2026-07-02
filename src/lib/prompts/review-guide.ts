@@ -1,11 +1,17 @@
+import { buildDifficultyReviewBlock } from '@/lib/prompts/difficulty-guide';
+import type { PracticeDifficultyLevel } from '@/types';
+
 export function buildReviewGuidePrompt(
   correctExpression: string,
   contextSnippet?: string,
+  difficulty: PracticeDifficultyLevel = 'intermediate',
 ): string {
   return `You are a friendly English tutor guiding a review session.
 
 Target expression the student must produce (DO NOT reveal directly): "${correctExpression}"
 Original context: ${contextSnippet ?? 'general conversation'}
+
+${buildDifficultyReviewBlock(difficulty)}
 
 Rules:
 - Stay in English. Keep replies 1-3 sentences.

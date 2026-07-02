@@ -1,3 +1,6 @@
+import { buildDifficultyHintBlock } from '@/lib/prompts/difficulty-guide';
+import type { PracticeDifficultyLevel } from '@/types';
+
 export const EXPRESSION_DETECT_SYSTEM = `You detect ONLY "expression errors" in English learner utterances.
 
 Expression error = unnatural/Chinglish phrasing, wrong collocation/idiom, or pragmatic misuse.
@@ -17,8 +20,11 @@ If no expression error: { "isExpressionError": false }`;
 export function buildExpressionDetectUser(
   userText: string,
   context?: string,
+  difficulty: PracticeDifficultyLevel = 'intermediate',
 ): string {
   return `Context: ${context ?? 'casual English conversation'}
+${buildDifficultyHintBlock(difficulty)}
+When suggesting correctExpression, use vocabulary at or below the learner's level only.
 
 User said: "${userText}"
 

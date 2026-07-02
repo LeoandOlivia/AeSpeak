@@ -55,14 +55,3 @@ export function getSubSceneImage(scenarioId: string): string {
 }
 
 export { getScenarioImage, REVIEW_SECTION_IMAGE, REVIEW_SECTION_TAGLINE };
-
-export function getCategoryArt(category: ScenarioCategory) {
-  const art = MAIN_SCENE_ART[category];
-  return {
-    label: art.label,
-    emoji: '',
-    gradient: '',
-    accent: '',
-    image: art.imageUrl,
-  };
-}

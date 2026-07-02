@@ -17,6 +17,7 @@ import { isNativePlatform } from '@/plugins/voice-recorder/adapter';
 import type { LlmProvider, TtsProvider, UserSettings } from '@/types';
 
 import { DEFAULT_SETTINGS, EDGE_TTS_VOICES, OPENAI_TTS_VOICES } from '@/types';
+import { normalizePracticeDifficulty, PRACTICE_DIFFICULTY_SPECS } from '@/lib/prompts/difficulty-guide';
 
 
 
@@ -79,6 +80,8 @@ function normalizeForm(input: UserSettings): UserSettings {
     ttsModel: input.ttsModel.trim() || 'tts-1',
 
     whisperModel: input.whisperModel.trim(),
+
+    practiceDifficulty: normalizePracticeDifficulty(input.practiceDifficulty),
 
   };
 
@@ -383,6 +386,38 @@ export function SettingsPage() {
         </div>
 
       </WarmCard>
+
+
+
+      <SettingsSection
+
+        title="Learning level"
+
+        icon="📚"
+
+        description="AI vocabulary and sentence complexity for practice, hints, and review. Change anytime — takes effect on the next message."
+
+      >
+
+        <Select
+
+          label="Difficulty"
+
+          value={form.practiceDifficulty}
+
+          options={PRACTICE_DIFFICULTY_SPECS.map((s) => [s.id, `${s.label} (${s.cefr})`])}
+
+          onChange={(v) => update('practiceDifficulty', normalizePracticeDifficulty(v))}
+
+        />
+
+        <p className="text-[11px] leading-relaxed text-[var(--color-label-secondary)]">
+
+          {PRACTICE_DIFFICULTY_SPECS.find((s) => s.id === form.practiceDifficulty)?.summary}
+
+        </p>
+
+      </SettingsSection>
 
 
 

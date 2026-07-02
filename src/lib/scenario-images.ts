@@ -155,7 +155,3 @@ export function getScenarioImage(
   if (!photoId) return MAIN_CATEGORY_IMAGES[category];
   return u(photoId, size.w, size.h);
 }
-
-export function unsplashCredit(): string {
-  return 'Photos via Unsplash';
-}

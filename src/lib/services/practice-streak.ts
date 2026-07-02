@@ -87,13 +87,3 @@ export function getStreakMasthead(streak: number): StreakMasthead {
     byline: 'Consistency builds fluency',
   };
 }
-
-/** @deprecated Use getStreakMasthead */
-export function formatPracticeStreakSubtitle(streak: number): string {
-  return getStreakMasthead(streak).headline;
-}
-
-export async function getPracticeStreak(): Promise<number> {
-  const days = await getPracticeDayKeys();
-  return computePracticeStreak(days);
-}

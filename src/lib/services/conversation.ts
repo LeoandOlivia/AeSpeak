@@ -93,12 +93,52 @@ export async function endConversation(conversationId: string): Promise<void> {
   });
 }
 
+async function deleteReviewCardRecords(reviewCardId: string): Promise<void> {
+  const conversations = await db.conversations.toArray();
+  for (const conv of conversations) {
+    if (conv.reviewCardId !== reviewCardId) continue;
+    await db.messages.where('conversationId').equals(conv.id).delete();
+    await db.conversations.delete(conv.id);
+  }
+  await db.reviewCards.delete(reviewCardId);
+}
+
 export async function deleteConversation(conversationId: string): Promise<void> {
-  await db.transaction('rw', [db.messages, db.conversations, db.errorRecords], async () => {
+  await db.transaction('rw', [db.messages, db.conversations], async () => {
     await db.messages.where('conversationId').equals(conversationId).delete();
-    await db.errorRecords.where('conversationId').equals(conversationId).delete();
     await db.conversations.delete(conversationId);
   });
+}
+
+export async function deleteReviewCard(reviewCardId: string): Promise<void> {
+  const card = await db.reviewCards.get(reviewCardId);
+  if (!card) return;
+
+  await db.transaction(
+    'rw',
+    [db.messages, db.conversations, db.reviewCards, db.errorRecords],
+    async () => {
+      await deleteReviewCardRecords(reviewCardId);
+      const errorRecord = await db.errorRecords.get(card.errorRecordId);
+      if (errorRecord) {
+        await db.errorRecords.delete(card.errorRecordId);
+      }
+    },
+  );
+}
+
+/** Remove review cards whose practice error record was already deleted. */
+export async function cleanupOrphanReviewCards(): Promise<number> {
+  const [cards, errors] = await Promise.all([
+    db.reviewCards.toArray(),
+    db.errorRecords.toArray(),
+  ]);
+  const validErrorIds = new Set(errors.map((e) => e.id));
+  const orphans = cards.filter((c) => !validErrorIds.has(c.errorRecordId));
+  for (const card of orphans) {
+    await deleteReviewCard(card.id);
+  }
+  return orphans.length;
 }
 
 export async function buildExpressionHintForUserMessage(
@@ -117,7 +157,7 @@ export async function buildExpressionHintForUserMessage(
     result = await llmJsonCompletion<ExpressionDetectResult>(
       settings,
       EXPRESSION_DETECT_SYSTEM,
-      buildExpressionDetectUser(userText, contextSnippet),
+      buildExpressionDetectUser(userText, contextSnippet, settings.practiceDifficulty),
     );
   } catch {
     return NATURAL_EXPRESSION_HINT;
@@ -158,24 +198,6 @@ export async function buildExpressionHintForUserMessage(
   }
 
   return NATURAL_EXPRESSION_HINT;
-}
-
-export async function detectExpressionError(
-  settings: UserSettings,
-  userText: string,
-  conversationId: string,
-  messageId: string,
-  scenarioId: string,
-  contextSnippet?: string,
-): Promise<void> {
-  await buildExpressionHintForUserMessage(
-    settings,
-    userText,
-    conversationId,
-    messageId,
-    scenarioId,
-    contextSnippet,
-  );
 }
 
 export async function getConversationErrors(conversationId: string) {

@@ -5,26 +5,11 @@ import type { Message } from '@/types';
 interface MessageBubbleProps {
   message: Message;
   fallbackHint?: string | null;
-  showSpeak?: boolean;
-  onSpeak?: () => void;
-  isSpeaking?: boolean;
-  isLoadingSpeak?: boolean;
 }
 
-export function MessageBubble({
-  message,
-  fallbackHint = null,
-  showSpeak = false,
-  onSpeak,
-  isSpeaking,
-  isLoadingSpeak,
-}: MessageBubbleProps) {
+export function MessageBubble({ message, fallbackHint = null }: MessageBubbleProps) {
   const isUser = message.role === 'user';
   const streaming = message.status === 'streaming';
-
-  if (!isUser && message.status === 'failed') {
-    return null;
-  }
 
   if (!isUser && !message.content.trim() && !streaming) {
     return null;
@@ -47,16 +32,6 @@ export function MessageBubble({
           <p className="whitespace-pre-wrap break-words">
             {displayText || (streaming ? '…' : '')}
           </p>
-          {showSpeak && !isUser && message.content && onSpeak && (
-            <button
-              type="button"
-              onClick={onSpeak}
-              disabled={isLoadingSpeak}
-              className="mt-1.5 flex items-center gap-1 text-[13px] font-medium text-[#007AFF] disabled:opacity-50"
-            >
-              {isLoadingSpeak ? 'Synthesizing…' : isSpeaking ? 'Stop' : '🔊 Listen'}
-            </button>
-          )}
         </div>
         {hintText && <HintTip text={hintText} />}
       </div>

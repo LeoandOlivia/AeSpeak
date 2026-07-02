@@ -8,16 +8,8 @@ export function showError(message: string, description?: string) {
   });
 }
 
-export function showSuccess(message: string, description?: string) {
-  sonnerToast.success(message, {
-    description,
-    duration: 4000,
-  });
-}
-
-export function showMessage(message: string, description?: string) {
-  sonnerToast.message(message, {
-    description,
-    duration: 4000,
-  });
+export function ensureOnlineOrToast(): boolean {
+  if (navigator.onLine) return true;
+  showError('Network unavailable', 'Check your connection and try again');
+  return false;
 }

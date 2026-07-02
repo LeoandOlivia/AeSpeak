@@ -3,8 +3,6 @@ import { BottomNav } from '@/components/ui/BottomNav';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { CATEGORY_LABELS, type ScenarioCategory } from '@/types';
 
-const MAIN_TABS = ['/', '/history', '/review', '/settings'] as const;
-
 function getPageMeta(
   pathname: string,
   navFrom?: string,
@@ -97,5 +95,3 @@ export function MobileShell() {
     </div>
   );
 }
-
-export { MAIN_TABS as TAB_ROUTES };

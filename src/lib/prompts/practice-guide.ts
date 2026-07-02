@@ -1,7 +1,26 @@
-import type { ErrorRecord, ScenarioCategory } from '@/types';
+import type { ErrorRecord, PracticeDifficultyLevel, ScenarioCategory } from '@/types';
+import { buildDifficultyLanguageBlock } from '@/lib/prompts/difficulty-guide';
 
 const HINT_START = '[[HINT]]';
 const HINT_END = '[[/HINT]]';
+
+/** Inject a scene reminder every N completed user turns (not shown in UI). */
+export const SCENARIO_REMINDER_INTERVAL = 6;
+
+export function buildScenarioReminder(characterRole: string, scene: string): string {
+  return `[Reminder: You are still ${characterRole}. Stay in this scene: ${scene}. Keep the conversation on-topic; redirect off-topic replies in character.]`;
+}
+
+export function appendScenarioReminderIfNeeded(
+  systemPrompt: string,
+  characterRole: string,
+  scene: string,
+  userTurnCount: number,
+): string {
+  if (userTurnCount < SCENARIO_REMINDER_INTERVAL) return systemPrompt;
+  if (userTurnCount % SCENARIO_REMINDER_INTERVAL !== 0) return systemPrompt;
+  return `${systemPrompt}\n\n${buildScenarioReminder(characterRole, scene)}`;
+}
 
 /** Practice chat system prompt — guided, short replies, Chinese inline tips */
 export function buildPracticeSystemPrompt(
@@ -9,24 +28,39 @@ export function buildPracticeSystemPrompt(
   scene: string,
   title: string,
   category: ScenarioCategory = 'daily_life',
+  suggestedVocab: string[] = [],
+  difficulty: PracticeDifficultyLevel = 'intermediate',
 ): string {
   const isFreeChat = category === 'free_chat';
+
+  const vocabLine =
+    !isFreeChat && suggestedVocab.length > 0
+      ? `- Weave in scenario vocabulary when natural: ${suggestedVocab.join(', ')}.`
+      : '';
 
   const roleplayBlock = isFreeChat
     ? ''
     : `
 ROLE-PLAY NOTE: You are acting as ${characterRole}. Stay in character for the English reply ONLY.
-The ${HINT_START} block is OUT OF CHARACTER learner feedback — never skip it after the user speaks.`;
+The ${HINT_START} block is OUT OF CHARACTER learner feedback — never skip it after the user speaks.
+
+SCENE BOUNDARIES:
+- Stay in scene: discuss ONLY topics relevant to this scenario — ${scene}
+- Redirect: if the learner goes off-topic, gently steer back in character (e.g. "Let's focus on your order — what would you like to drink?")
+${vocabLine}
+- Forbidden: do NOT switch roles, leave the scene, act as a general chatbot, or discuss unrelated topics (politics, coding, homework help, etc.)`;
 
   return `You are ${characterRole} in this scenario: ${scene}
 Scenario title: ${title}
 ${roleplayBlock}
 
+${buildDifficultyLanguageBlock(difficulty)}
+
 Rules:
 - Stay in character for the English reply. Never mention you are an AI.
 - English reply: 1–2 short sentences + one easy follow-up question.
 - Actively GUIDE the learner: they are shy — always end with ONE simple question they can answer in English.
-- Keep vocabulary natural and conversational.
+- Keep vocabulary natural and conversational — within the LANGUAGE LEVEL above only.
 
 Response format after the user has spoken (MANDATORY):
 [Your English in-character reply + one follow-up question]
