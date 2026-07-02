@@ -3,9 +3,13 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
 import { StoryCard } from '@/components/ui/StoryCard';
 import { getMainSceneArt, REVIEW_SECTION_IMAGE, REVIEW_SECTION_TAGLINE } from '@/lib/category-art';
-import { unsplashCredit } from '@/lib/scenario-images';
 import { isDue } from '@/lib/anki-scheduler';
 import { db } from '@/lib/db';
+import {
+  computePracticeStreak,
+  getPracticeDayKeys,
+  getStreakMasthead,
+} from '@/lib/services/practice-streak';
 import {
   createPracticeConversation,
   getActiveConversationForScenario,
@@ -41,6 +45,16 @@ export function HomePage() {
     return cards.filter((c) => isDue(c)).length;
   }, []);
 
+  const practiceStreak = useLiveQuery(async () => {
+    const days = await getPracticeDayKeys();
+    return computePracticeStreak(days);
+  }, []);
+
+  const streakMasthead = useMemo(
+    () => getStreakMasthead(practiceStreak ?? 0),
+    [practiceStreak],
+  );
+
   const activeByCategory = useMemo(() => {
     const map = new Map<string, number>();
     if (!activeConversations || !scenarios) return map;
@@ -67,18 +81,30 @@ export function HomePage() {
   const featuredArt = getMainSceneArt(featured);
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
-      {/* Newspaper masthead */}
-      <header className="border-b-2 border-[var(--color-label)] px-4 pb-3 pt-2 text-center">
+    <div className="flex flex-col">
+      {/* Newspaper masthead — date uses device local timezone */}
+      <header
+        className="border-b-2 border-[var(--color-label)] px-4 pb-3 text-center"
+        style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))' }}
+      >
         <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--color-label-secondary)]">
           {todayHeadline()}
         </p>
         <h1 className="mt-1 font-serif text-[32px] font-black leading-none tracking-tight text-[var(--color-label)]">
           eSpeak Daily
         </h1>
-        <p className="mt-1 text-[11px] text-[var(--color-label-secondary)]">
-          Your English practice edition · {unsplashCredit()}
-        </p>
+        <div className="mt-2 flex items-center justify-center gap-2">
+          <span className="h-px w-10 bg-[var(--color-paper-rule)]" aria-hidden />
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-accent)]">
+            {streakMasthead.headline}
+          </p>
+          <span className="h-px w-10 bg-[var(--color-paper-rule)]" aria-hidden />
+        </div>
+        {streakMasthead.byline && (
+          <p className="mt-1.5 font-serif text-[12px] italic leading-snug text-[var(--color-label-secondary)]">
+            {streakMasthead.byline}
+          </p>
+        )}
       </header>
 
       <div className="px-4 py-4">

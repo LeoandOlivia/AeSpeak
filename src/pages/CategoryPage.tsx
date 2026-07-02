@@ -72,7 +72,7 @@ export function CategoryPage() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <div className="flex flex-col">
       <div className="relative mx-4 mt-3 overflow-hidden rounded-xl">
         <img
           src={sectionArt.imageUrl}

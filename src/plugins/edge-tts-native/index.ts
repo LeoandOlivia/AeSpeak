@@ -10,6 +10,19 @@ export function isNativeEdgeTtsAvailable(): boolean {
   return Capacitor.isNativePlatform();
 }
 
+let warmUpPromise: Promise<void> | null = null;
+
+/** Pre-open Edge WebSocket on Android so first reply plays faster */
+export function warmUpNativeEdgeTts(voice = 'en-US-JennyNeural'): Promise<void> {
+  if (!isNativeEdgeTtsAvailable()) return Promise.resolve();
+  if (!warmUpPromise) {
+    warmUpPromise = synthesizeViaNativeEdge('Hi', voice)
+      .then(() => undefined)
+      .catch(() => undefined);
+  }
+  return warmUpPromise;
+}
+
 export async function synthesizeViaNativeEdge(text: string, voice: string): Promise<ArrayBuffer> {
   const { base64, mimeType } = await EdgeTtsNative.synthesize({ text, voice });
   const binary = atob(base64);

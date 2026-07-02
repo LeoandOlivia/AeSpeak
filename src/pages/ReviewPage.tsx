@@ -27,7 +27,7 @@ export function ReviewPage() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto px-4 pb-4">
+    <div className="flex flex-col px-4 pb-4">
       <div className="mb-4 overflow-hidden rounded-2xl bg-[var(--color-bg-elevated)] p-5 shadow-sm">
         <p className="text-[48px] font-bold leading-none text-[var(--color-accent)]">{dueCards.length}</p>
         <p className="mt-1 text-[17px] font-semibold text-[var(--color-label)]">Due for review today</p>

@@ -6,13 +6,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { toast } from 'sonner';
 
-import { ChatInputBar, CHAT_INPUT_HEIGHT } from '@/components/chat/ChatInputBar';
-
+import { ChatInputBar } from '@/components/chat/ChatInputBar';
+import { ChatErrorBanner } from '@/components/chat/ChatErrorBanner';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 
 import { getMainSceneArt, getSubSceneImage } from '@/lib/category-art';
 
-import { getSpeakableText } from '@/lib/prompts/practice-guide';
+import { formatExpressionHint, getSpeakableText, parseAssistantContent } from '@/lib/prompts/practice-guide';
 
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 
@@ -25,10 +25,6 @@ import { db } from '@/lib/db';
 import { endConversation, getConversationErrors } from '@/lib/services/conversation';
 
 import { DEFAULT_SETTINGS } from '@/types';
-
-
-
-const SCROLL_PADDING = `calc(${CHAT_INPUT_HEIGHT} + 3.5rem + env(safe-area-inset-bottom, 0px) + 1rem)`;
 
 
 
@@ -121,7 +117,7 @@ export function ChatPage() {
 
 
 
-  const { sendUserMessage, sendOpening, retryLast, isStreaming } = useChatStream({
+  const { sendUserMessage, sendOpening, retryLast, isStreaming, lastError, clearError, assistantHints } = useChatStream({
 
     conversationId,
 
@@ -139,7 +135,41 @@ export function ChatPage() {
 
   const ended = conversation?.status === 'ended';
 
-  const hasFailed = messages?.some((m) => m.status === 'failed');
+  const visibleMessages = useMemo(
+    () => messages?.filter((m) => m.status !== 'failed') ?? [],
+    [messages],
+  );
+
+  const expressionErrors = useLiveQuery(
+    () => db.errorRecords.where('conversationId').equals(conversationId).toArray(),
+    [conversationId],
+  );
+
+  const fallbackHintsByAssistantId = useMemo(() => {
+    const map = new Map<string, string>();
+    if (!visibleMessages.length || !expressionErrors?.length) return map;
+
+    const errorsByUserMessageId = new Map(expressionErrors.map((e) => [e.messageId, e]));
+
+    for (let i = 0; i < visibleMessages.length; i++) {
+      const msg = visibleMessages[i];
+      if (msg.role !== 'assistant' || msg.status === 'streaming') continue;
+
+      const parsed = parseAssistantContent(msg.content);
+      if (parsed.hint) continue;
+
+      for (let j = i - 1; j >= 0; j--) {
+        const prev = visibleMessages[j];
+        if (prev.role === 'user') {
+          const err = errorsByUserMessageId.get(prev.id);
+          if (err) map.set(msg.id, formatExpressionHint(err));
+          break;
+        }
+      }
+    }
+
+    return map;
+  }, [visibleMessages, expressionErrors]);
 
 
 
@@ -278,7 +308,7 @@ export function ChatPage() {
 
     return (
 
-      <div className="flex h-full flex-col overflow-y-auto px-4 py-4" style={{ paddingBottom: SCROLL_PADDING }}>
+      <div className="scroll-area flex min-h-0 flex-1 flex-col px-4 py-4">
 
         <div className="mb-4 rounded-2xl bg-[var(--color-bg-elevated)] p-6 text-center shadow-sm">
 
@@ -374,7 +404,7 @@ export function ChatPage() {
 
   return (
 
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
 
       {scenario && sceneTile && (
 
@@ -422,15 +452,15 @@ export function ChatPage() {
 
       )}
 
+      {lastError && (
+        <ChatErrorBanner
+          message={lastError}
+          onRetry={() => void retryLast()}
+          onDismiss={clearError}
+        />
+      )}
 
-
-      <div
-
-        className="min-h-0 flex-1 overflow-y-auto px-3 py-2"
-
-        style={{ paddingBottom: SCROLL_PADDING }}
-
-      >
+      <div className="scroll-area min-h-0 flex-1 px-3 py-2">
 
         {isOpening && (
 
@@ -442,29 +472,17 @@ export function ChatPage() {
 
         )}
 
-        {messages?.map((m) => (
-
-          <MessageBubble key={m.id} message={m} />
-
+        {visibleMessages.map((m) => (
+          <MessageBubble
+            key={m.id}
+            message={m}
+            fallbackHint={
+              m.role === 'assistant'
+                ? (assistantHints[m.id] ?? fallbackHintsByAssistantId.get(m.id) ?? null)
+                : null
+            }
+          />
         ))}
-
-        {hasFailed && (
-
-          <button
-
-            type="button"
-
-            onClick={() => void retryLast()}
-
-            className="mx-auto block text-[13px] font-medium text-[#007AFF]"
-
-          >
-
-            Retry last message
-
-          </button>
-
-        )}
 
         <div ref={bottomRef} />
 

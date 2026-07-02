@@ -6,6 +6,10 @@ import {
   EXPRESSION_DETECT_SYSTEM,
   buildExpressionDetectUser,
 } from '@/lib/prompts/expression-detect';
+import {
+  formatExpressionHint,
+  NATURAL_EXPRESSION_HINT,
+} from '@/lib/prompts/practice-guide';
 import type {
   Conversation,
   ExpressionDetectResult,
@@ -97,6 +101,65 @@ export async function deleteConversation(conversationId: string): Promise<void> 
   });
 }
 
+export async function buildExpressionHintForUserMessage(
+  settings: UserSettings,
+  userText: string,
+  conversationId: string,
+  messageId: string,
+  scenarioId: string,
+  contextSnippet?: string,
+): Promise<string> {
+  const existing = await db.errorRecords.where('messageId').equals(messageId).first();
+  if (existing) return formatExpressionHint(existing);
+
+  let result: ExpressionDetectResult;
+  try {
+    result = await llmJsonCompletion<ExpressionDetectResult>(
+      settings,
+      EXPRESSION_DETECT_SYSTEM,
+      buildExpressionDetectUser(userText, contextSnippet),
+    );
+  } catch {
+    return NATURAL_EXPRESSION_HINT;
+  }
+
+  if (
+    result.isExpressionError &&
+    result.severity !== 'low' &&
+    result.originalExpression &&
+    result.correctExpression &&
+    result.explanation
+  ) {
+    const errorId = uuidv4();
+    await db.errorRecords.add({
+      id: errorId,
+      conversationId,
+      messageId,
+      scenarioId,
+      originalExpression: result.originalExpression,
+      correctExpression: result.correctExpression,
+      explanation: result.explanation,
+      contextSnippet,
+      createdAt: Date.now(),
+    });
+
+    const initial = createInitialReviewCard();
+    await db.reviewCards.add({
+      id: uuidv4(),
+      errorRecordId: errorId,
+      ...initial,
+    });
+
+    return formatExpressionHint({
+      originalExpression: result.originalExpression,
+      correctExpression: result.correctExpression,
+      explanation: result.explanation,
+    });
+  }
+
+  return NATURAL_EXPRESSION_HINT;
+}
+
 export async function detectExpressionError(
   settings: UserSettings,
   userText: string,
@@ -105,38 +168,14 @@ export async function detectExpressionError(
   scenarioId: string,
   contextSnippet?: string,
 ): Promise<void> {
-  const existing = await db.errorRecords.where('messageId').equals(messageId).first();
-  if (existing) return;
-
-  const result = await llmJsonCompletion<ExpressionDetectResult>(
+  await buildExpressionHintForUserMessage(
     settings,
-    EXPRESSION_DETECT_SYSTEM,
-    buildExpressionDetectUser(userText, contextSnippet),
-  );
-
-  if (!result.isExpressionError) return;
-  if (result.severity === 'low') return;
-  if (!result.originalExpression || !result.correctExpression || !result.explanation) return;
-
-  const errorId = uuidv4();
-  await db.errorRecords.add({
-    id: errorId,
+    userText,
     conversationId,
     messageId,
     scenarioId,
-    originalExpression: result.originalExpression,
-    correctExpression: result.correctExpression,
-    explanation: result.explanation,
     contextSnippet,
-    createdAt: Date.now(),
-  });
-
-  const initial = createInitialReviewCard();
-  await db.reviewCards.add({
-    id: uuidv4(),
-    errorRecordId: errorId,
-    ...initial,
-  });
+  );
 }
 
 export async function getConversationErrors(conversationId: string) {

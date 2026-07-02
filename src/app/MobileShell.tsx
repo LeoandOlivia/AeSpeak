@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { BottomNav, BOTTOM_NAV_HEIGHT } from '@/components/ui/BottomNav';
+import { BottomNav } from '@/components/ui/BottomNav';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { CATEGORY_LABELS, type ScenarioCategory } from '@/types';
 
@@ -67,7 +67,10 @@ export function MobileShell() {
   };
 
   return (
-    <div className="app-paper-bg relative mx-auto flex h-[100dvh] max-w-[430px] flex-col">
+    <div
+      className="app-shell app-paper-bg fixed inset-y-0 z-0 flex w-full max-w-[430px] flex-col"
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    >
       {!isHome && (
         <PageHeader
           title={meta.title}
@@ -78,15 +81,16 @@ export function MobileShell() {
         />
       )}
 
-      <main
-        className="min-h-0 flex-1 overflow-hidden"
-        style={{
-          paddingBottom: isChatLike
-            ? `calc(${BOTTOM_NAV_HEIGHT} + env(safe-area-inset-bottom, 0px))`
-            : `calc(${BOTTOM_NAV_HEIGHT} + env(safe-area-inset-bottom, 0px))`,
-        }}
-      >
-        <Outlet />
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {isChatLike ? (
+          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+            <Outlet />
+          </div>
+        ) : (
+          <div className="scroll-area min-h-0 flex-1 overscroll-contain">
+            <Outlet />
+          </div>
+        )}
       </main>
 
       <BottomNav />

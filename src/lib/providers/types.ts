@@ -72,10 +72,6 @@ export function getDeepseekBaseUrl(settings: UserSettings): string {
   return normalizeBaseUrl(settings.deepseekBaseUrl, 'https://api.deepseek.com/v1');
 }
 
-export function getOpenAiBaseUrl(settings: UserSettings): string {
-  return normalizeBaseUrl(settings.openaiBaseUrl, 'https://api.openai.com/v1');
-}
-
 export function isOpenRouterBaseUrl(baseUrl: string): boolean {
   try {
     const host = new URL(baseUrl).hostname.toLowerCase();
@@ -83,6 +79,31 @@ export function isOpenRouterBaseUrl(baseUrl: string): boolean {
   } catch {
     return baseUrl.toLowerCase().includes('openrouter.ai');
   }
+}
+
+/** OpenRouter keys always start with sk-or-v1 */
+export function isOpenRouterApiKey(apiKey: string): boolean {
+  return apiKey.trim().startsWith('sk-or-v1');
+}
+
+export function getOpenAiBaseUrl(settings: UserSettings): string {
+  const custom = (settings.openaiBaseUrl ?? '').trim();
+  if (custom) {
+    return normalizeBaseUrl(custom, 'https://api.openai.com/v1');
+  }
+  if (isOpenRouterApiKey(settings.openaiKey)) {
+    return 'https://openrouter.ai/api/v1';
+  }
+  return 'https://api.openai.com/v1';
+}
+
+/** Recommended OpenRouter headers (also helps routing/analytics) */
+export function getOpenRouterHeaders(apiKey: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${apiKey.trim()}`,
+    'HTTP-Referer': 'https://espeak.app',
+    'X-Title': 'eSpeak',
+  };
 }
 
 export function getLlmBaseUrl(settings: UserSettings): string {

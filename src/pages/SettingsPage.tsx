@@ -120,7 +120,29 @@ export function SettingsPage() {
 
   const update = <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
 
-    setForm((f) => ({ ...f, [key]: value }));
+    setForm((f) => {
+
+      const next = { ...f, [key]: value };
+
+      if (
+
+        key === 'openaiKey' &&
+
+        typeof value === 'string' &&
+
+        value.trim().startsWith('sk-or-v1') &&
+
+        !next.openaiBaseUrl.trim()
+
+      ) {
+
+        next.openaiBaseUrl = 'https://openrouter.ai/api/v1';
+
+      }
+
+      return next;
+
+    });
 
   };
 
@@ -332,7 +354,7 @@ export function SettingsPage() {
 
   return (
 
-    <div className="h-full overflow-y-auto px-4 py-3 pb-8">
+    <div className="px-4 py-3">
 
       {/* Quick status */}
 
@@ -526,7 +548,7 @@ export function SettingsPage() {
 
             placeholder="https://openrouter.ai/api/v1"
 
-            hint="OpenRouter: https://openrouter.ai/api/v1. Voice/STT requires account balance ≥ $0.50."
+            hint="OpenRouter: https://openrouter.ai/api/v1. Auto-filled for sk-or-v1 keys. Voice/STT requires balance ≥ $0.50."
 
           />
 

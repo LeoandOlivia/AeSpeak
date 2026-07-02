@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MobileShell } from '@/app/MobileShell';
+import { RouteErrorPage } from '@/app/RouteErrorPage';
 import { CategoryPage } from '@/pages/CategoryPage';
 import { ChatPage } from '@/pages/ChatPage';
 import { HistoryPage } from '@/pages/HistoryPage';
@@ -12,6 +13,7 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <MobileShell />,
+    errorElement: <RouteErrorPage />,
     children: [
       { index: true, element: <HomePage /> },
       { path: 'scene/:category', element: <CategoryPage /> },

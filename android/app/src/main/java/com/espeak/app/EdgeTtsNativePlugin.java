@@ -28,6 +28,15 @@ public class EdgeTtsNativePlugin extends Plugin {
     private static final String USER_AGENT =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0";
     private static final String ORIGIN = "chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold";
+    private static final int WAIT_MS = 12_000;
+
+    private final OkHttpClient client =
+        new OkHttpClient.Builder()
+            .connectTimeout(8, TimeUnit.SECONDS)
+            .readTimeout(12, TimeUnit.SECONDS)
+            .writeTimeout(8, TimeUnit.SECONDS)
+            .callTimeout(15, TimeUnit.SECONDS)
+            .build();
 
     @PluginMethod
     public void synthesize(PluginCall call) {
@@ -40,7 +49,7 @@ public class EdgeTtsNativePlugin extends Plugin {
 
         new Thread(() -> {
             try {
-                byte[] audio = synthesizeAudio(text, voice);
+                byte[] audio = synthesizeWithRetry(text, voice);
                 String base64 = Base64.encodeToString(audio, Base64.NO_WRAP);
                 JSObject ret = new JSObject();
                 ret.put("base64", base64);
@@ -52,7 +61,15 @@ public class EdgeTtsNativePlugin extends Plugin {
         }).start();
     }
 
-    private byte[] synthesizeAudio(String text, String voice) throws Exception {
+    private byte[] synthesizeWithRetry(String text, String voice) throws Exception {
+        try {
+            return synthesizeOnce(text, voice);
+        } catch (Exception first) {
+            return synthesizeOnce(text, voice);
+        }
+    }
+
+    private byte[] synthesizeOnce(String text, String voice) throws Exception {
         String requestId = UUID.randomUUID().toString();
         String gec = generateSecMsGec();
         String url =
@@ -66,8 +83,6 @@ public class EdgeTtsNativePlugin extends Plugin {
                 + "&ConnectionId="
                 + requestId;
 
-        OkHttpClient client =
-            new OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build();
         Request request =
             new Request.Builder()
                 .url(url)
@@ -89,13 +104,12 @@ public class EdgeTtsNativePlugin extends Plugin {
 
                 @Override
                 public void onMessage(WebSocket webSocket, ByteString bytes) {
-                    byte[] data = bytes.toByteArray();
-                    byte[] marker = "Path:audio\r\n".getBytes(StandardCharsets.UTF_8);
-                    int idx = indexOf(data, marker);
-                    if (idx >= 0) {
-                        audio.write(data, idx + marker.length, data.length - idx - marker.length);
-                    }
-                    if (new String(data, StandardCharsets.UTF_8).contains("Path:turn.end")) {
+                    processMessage(bytes.toByteArray(), audio, webSocket);
+                }
+
+                @Override
+                public void onMessage(WebSocket webSocket, String text) {
+                    if (text.contains("Path:turn.end")) {
                         webSocket.close(1000, "done");
                     }
                 }
@@ -121,12 +135,25 @@ public class EdgeTtsNativePlugin extends Plugin {
         WebSocket ws = client.newWebSocket(request, listener);
 
         synchronized (done) {
-            if (!done[0]) done.wait(30000);
+            if (!done[0]) done.wait(WAIT_MS);
         }
+
+        ws.cancel();
 
         if (error[0] != null) throw error[0];
         if (audio.size() == 0) throw new Exception("No audio returned");
         return audio.toByteArray();
+    }
+
+    private static void processMessage(byte[] data, ByteArrayOutputStream audio, WebSocket webSocket) {
+        byte[] marker = "Path:audio\r\n".getBytes(StandardCharsets.UTF_8);
+        int idx = indexOf(data, marker);
+        if (idx >= 0) {
+            audio.write(data, idx + marker.length, data.length - idx - marker.length);
+        }
+        if (new String(data, StandardCharsets.UTF_8).contains("Path:turn.end")) {
+            webSocket.close(1000, "done");
+        }
     }
 
     private static int indexOf(byte[] data, byte[] marker) {

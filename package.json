@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "cap:sync": "vite build && npx cap sync",
-    "install:android": "vite build && npx cap sync android && cd android && gradlew.bat installDebug",
+    "install:android": "node scripts/install-android.mjs",
+    "doctor:android": "node scripts/doctor-android.mjs",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

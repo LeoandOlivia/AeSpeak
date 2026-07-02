@@ -23,7 +23,7 @@ export function HistoryPage() {
   }, [scenarios]);
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto px-4 pb-4">
+    <div className="flex flex-col px-4 pb-4">
       {!conversations?.length ? (
         <div className="flex flex-col items-center py-16 text-center">
           <div className="mb-3 text-5xl">💬</div>

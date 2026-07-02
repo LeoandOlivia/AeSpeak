@@ -1,8 +1,10 @@
 import { parseAssistantContent } from '@/lib/prompts/practice-guide';
+import { HintTip } from '@/components/chat/HintTip';
 import type { Message } from '@/types';
 
 interface MessageBubbleProps {
   message: Message;
+  fallbackHint?: string | null;
   showSpeak?: boolean;
   onSpeak?: () => void;
   isSpeaking?: boolean;
@@ -11,31 +13,36 @@ interface MessageBubbleProps {
 
 export function MessageBubble({
   message,
+  fallbackHint = null,
   showSpeak = false,
   onSpeak,
   isSpeaking,
   isLoadingSpeak,
 }: MessageBubbleProps) {
   const isUser = message.role === 'user';
-  const failed = message.status === 'failed';
   const streaming = message.status === 'streaming';
 
-  const parsed =
-    !isUser && message.content && !streaming
-      ? parseAssistantContent(message.content)
-      : null;
+  if (!isUser && message.status === 'failed') {
+    return null;
+  }
 
+  if (!isUser && !message.content.trim() && !streaming) {
+    return null;
+  }
+
+  const parsed = !isUser && message.content ? parseAssistantContent(message.content) : null;
   const displayText = parsed ? parsed.dialogue : message.content;
+  const hintText = parsed?.hint ?? fallbackHint ?? null;
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-2`}>
-      <div className={`max-w-[85%] ${isUser ? '' : ''}`}>
+      <div className="max-w-[92%]">
         <div
           className={`px-3.5 py-2 text-[17px] leading-snug ${
             isUser
               ? 'rounded-[18px] rounded-br-[4px] bg-[#007AFF] text-white'
               : 'rounded-[18px] rounded-bl-[4px] bg-[var(--color-fill-secondary)] text-[var(--color-label)]'
-          } ${failed ? 'opacity-60' : ''}`}
+          }`}
         >
           <p className="whitespace-pre-wrap break-words">
             {displayText || (streaming ? '…' : '')}
@@ -50,13 +57,8 @@ export function MessageBubble({
               {isLoadingSpeak ? 'Synthesizing…' : isSpeaking ? 'Stop' : '🔊 Listen'}
             </button>
           )}
-          {failed && <p className="mt-1 text-[13px] text-[#FF3B30]">Send failed</p>}
         </div>
-        {parsed?.hint && (
-          <p className="mt-1 px-1 text-[13px] leading-snug text-[var(--color-label-secondary)]">
-            💡 {parsed.hint}
-          </p>
-        )}
+        {hintText && <HintTip text={hintText} />}
       </div>
     </div>
   );

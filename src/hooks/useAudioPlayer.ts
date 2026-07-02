@@ -1,7 +1,25 @@
 import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { synthesizeSpeech } from '@/lib/providers/chain';
+import { synthesizeViaBrowserSpeech, isBrowserSpeechAvailable } from '@/lib/providers/tts/edge-ws';
 import type { UserSettings } from '@/types';
+
+const TTS_TIMEOUT_MS = 10_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error('TTS timeout')), ms);
+    promise
+      .then((value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((err) => {
+        window.clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
 
 export function useAudioPlayer(settings: UserSettings) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -11,7 +29,16 @@ export function useAudioPlayer(settings: UserSettings) {
   const stop = useCallback(() => {
     audioRef.current?.pause();
     audioRef.current = null;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
     setPlayingId(null);
+  }, []);
+
+  const playWithBrowserSpeech = useCallback(async (text: string, voice: string) => {
+    if (!isBrowserSpeechAvailable()) return false;
+    await synthesizeViaBrowserSpeech(text, voice);
+    return true;
   }, []);
 
   const play = useCallback(
@@ -30,18 +57,28 @@ export function useAudioPlayer(settings: UserSettings) {
 
       try {
         setLoadingId(messageId);
-        const buffer = await synthesizeSpeech({ settings, text, voice: settings.ttsVoice });
+        let buffer: ArrayBuffer;
+        try {
+          buffer = await withTimeout(
+            synthesizeSpeech({ settings, text, voice: settings.ttsVoice }),
+            TTS_TIMEOUT_MS,
+          );
+        } catch {
+          const usedBrowser = await playWithBrowserSpeech(text, settings.ttsVoice);
+          if (usedBrowser) return;
+          throw new Error('Speech synthesis timed out');
+        }
+
         if (settings.mockVoice || buffer.byteLength === 0) {
           if (buffer.byteLength === 0) {
-            // Edge/system fallback: try browser speech synthesis
-            if ('speechSynthesis' in window) {
-              const u = new SpeechSynthesisUtterance(text);
-              u.lang = 'en-US';
-              window.speechSynthesis.speak(u);
+            const usedBrowser = await playWithBrowserSpeech(text, settings.ttsVoice);
+            if (!usedBrowser) {
+              toast.error('Speech playback unavailable');
             }
           }
           return;
         }
+
         const blob = new Blob([buffer], { type: 'audio/mpeg' });
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
@@ -52,17 +89,23 @@ export function useAudioPlayer(settings: UserSettings) {
           setPlayingId(null);
         };
         audio.onerror = () => {
-          toast.error('Playback failed');
-          setPlayingId(null);
+          URL.revokeObjectURL(url);
+          void playWithBrowserSpeech(text, settings.ttsVoice).then((ok) => {
+            if (!ok) toast.error('Playback failed');
+            setPlayingId(null);
+          });
         };
         await audio.play();
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : 'Speech playback failed');
+        const usedBrowser = await playWithBrowserSpeech(text, settings.ttsVoice);
+        if (!usedBrowser) {
+          toast.error(e instanceof Error ? e.message : 'Speech playback failed');
+        }
       } finally {
         setLoadingId(null);
       }
     },
-    [settings, playingId, loadingId, stop],
+    [settings, playingId, loadingId, stop, playWithBrowserSpeech],
   );
 
   return { play, stop, playingId, loadingId };

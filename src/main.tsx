@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { router } from '@/app/router';
 import { initDatabase } from '@/lib/db/seed-scenarios';
 import { warmUpSpeechVoices } from '@/lib/providers/tts/edge-ssml';
+import { warmUpNativeEdgeTts } from '@/plugins/edge-tts-native';
 import './index.css';
 
 function AppBootstrap() {
@@ -13,11 +14,16 @@ function AppBootstrap() {
 
   useEffect(() => {
     initDatabase()
-      .then(() => {
+      .then(async () => {
         try {
           warmUpSpeechVoices();
         } catch {
           // non-fatal on platforms without speechSynthesis
+        }
+        try {
+          await warmUpNativeEdgeTts();
+        } catch {
+          // non-fatal
         }
         setReady(true);
       })
@@ -56,13 +62,18 @@ function AppBootstrap() {
       <RouterProvider router={router} />
       <Toaster
         position="top-center"
+        richColors
+        closeButton
+        visibleToasts={3}
+        duration={6000}
         toastOptions={{
           className: 'text-[15px] font-medium',
           style: {
-            background: 'rgba(255,255,255,0.95)',
+            background: 'rgba(255,255,255,0.98)',
             color: '#000',
             border: '1px solid rgba(60,60,67,0.12)',
             borderRadius: '14px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
           },
         }}
       />

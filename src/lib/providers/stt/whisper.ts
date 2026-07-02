@@ -1,5 +1,12 @@
 import type { SttProvider, SttOptions } from '../types';
-import { getOpenAiBaseUrl, isOpenRouterBaseUrl, parseApiErrorMessage, ProviderError } from '../types';
+import {
+  getOpenAiBaseUrl,
+  getOpenRouterHeaders,
+  isOpenRouterApiKey,
+  isOpenRouterBaseUrl,
+  parseApiErrorMessage,
+  ProviderError,
+} from '../types';
 import type { UserSettings } from '@/types';
 import { mimeToWhisperFilename } from '@/lib/audio/recording';
 
@@ -13,14 +20,36 @@ export function isOpenRouterAudioBalanceError(message: string): boolean {
   return lower.includes('$0.50') || lower.includes('balance for audio');
 }
 
-export function formatSttErrorMessage(message: string): string {
+export function formatSttErrorMessage(message: string, baseUrl?: string): string {
+  if (
+    isOpenRouterApiKey(message) ||
+    (message.includes('platform.openai.com') && message.includes('sk-or-v1'))
+  ) {
+    return 'OpenRouter key detected but request went to OpenAI. Set Base URL to https://openrouter.ai/api/v1 (or leave Base URL empty — we auto-detect sk-or-v1 keys).';
+  }
   if (isOpenRouterAudioBalanceError(message)) {
     return 'OpenRouter voice features require account balance ≥ $0.50 — top up at openrouter.ai';
   }
   if (isWhisperChannelError(message)) {
     return 'Relay has not enabled Whisper — verify model name and account permissions';
   }
+  if (baseUrl && isOpenRouterBaseUrl(baseUrl)) {
+    return `${message} (OpenRouter · ${baseUrl})`;
+  }
   return message;
+}
+
+function formatSttValidationError(message: string, settings: UserSettings, baseUrl: string): string {
+  if (
+    isOpenRouterApiKey(settings.openaiKey) &&
+    !isOpenRouterBaseUrl(baseUrl)
+  ) {
+    return 'This is an OpenRouter key (sk-or-v1…). Set Base URL to https://openrouter.ai/api/v1';
+  }
+  if (message.includes('platform.openai.com') && isOpenRouterApiKey(settings.openaiKey)) {
+    return 'OpenRouter key was sent to OpenAI by mistake. Set Base URL to https://openrouter.ai/api/v1 and try again.';
+  }
+  return formatSttErrorMessage(message, baseUrl);
 }
 
 export const mockStt: SttProvider = {
@@ -67,6 +96,11 @@ async function postOpenRouterTranscription(
     },
   };
 
+  const headers = {
+    'Content-Type': 'application/json',
+    ...getOpenRouterHeaders(settings.openaiKey),
+  };
+
   const useDevProxy = import.meta.env.DEV && typeof window !== 'undefined';
   const response = useDevProxy
     ? await fetch('/api/whisper-proxy', {
@@ -80,16 +114,16 @@ async function postOpenRouterTranscription(
       })
     : await fetch(`${baseUrl}/audio/transcriptions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${settings.openaiKey}`,
-        },
+        headers,
         body: JSON.stringify(payload),
       });
 
   if (!response.ok) {
     const text = await response.text();
-    throw new ProviderError(parseApiErrorMessage(text) || 'Whisper transcription failed', 'whisper');
+    throw new ProviderError(
+      formatSttErrorMessage(parseApiErrorMessage(text) || 'Whisper transcription failed', baseUrl),
+      'whisper',
+    );
   }
 
   const json = (await response.json()) as { text?: string };
@@ -123,7 +157,10 @@ async function postOpenAiMultipartTranscription(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new ProviderError(parseApiErrorMessage(text) || 'Whisper transcription failed', 'whisper');
+    throw new ProviderError(
+      formatSttErrorMessage(parseApiErrorMessage(text) || 'Whisper transcription failed', baseUrl),
+      'whisper',
+    );
   }
 
   const json = (await response.json()) as { text?: string };
@@ -150,14 +187,20 @@ export const whisperStt: SttProvider = {
       throw new ProviderError('OpenAI Key not configured (required for Whisper)', 'whisper');
     }
     const baseUrl = getOpenAiBaseUrl(settings);
-    const response = await fetch(`${baseUrl}/models`, {
-      headers: { Authorization: `Bearer ${settings.openaiKey}` },
-    });
+    const headers = isOpenRouterBaseUrl(baseUrl)
+      ? getOpenRouterHeaders(settings.openaiKey)
+      : { Authorization: `Bearer ${settings.openaiKey}` };
+
+    const response = await fetch(`${baseUrl}/models`, { headers });
     if (!response.ok) {
       const text = await response.text();
       throw new ProviderError(
-        parseApiErrorMessage(text) ||
-          `Key validation failed (${response.status}) — check Key or Base URL`,
+        formatSttValidationError(
+          parseApiErrorMessage(text) ||
+            `Key validation failed (${response.status}) — check Key or Base URL`,
+          settings,
+          baseUrl,
+        ),
         'whisper',
       );
     }

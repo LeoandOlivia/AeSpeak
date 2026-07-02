@@ -11,9 +11,7 @@ interface ChatInputBarProps {
   placeholder?: string;
 }
 
-const BOTTOM_OFFSET = 'calc(4.5rem + env(safe-area-inset-bottom, 0px))';
-
-/** iMessage-style input bar: mic when empty, blue send when text is present */
+/** iMessage-style input bar — sits above bottom nav in flex layout */
 export function ChatInputBar({
   value,
   onChange,
@@ -28,19 +26,18 @@ export function ChatInputBar({
   const isRecording = voiceState === 'recording';
 
   return (
-    <div
-      className="fixed left-1/2 z-40 w-full max-w-[430px] -translate-x-1/2 px-3 py-2"
-      style={{ bottom: BOTTOM_OFFSET }}
-    >
+    <div className="shrink-0 border-t border-[var(--color-paper-rule)] bg-[var(--color-bg-nav)] px-3 py-2 backdrop-blur-xl">
       {isRecording && (
         <div className="mb-2 flex items-center justify-center gap-2">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-[#FF3B30]" />
-          <span className="text-[13px] font-medium text-[#FF3B30]">Recording — tap to stop</span>
+          <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-accent)]" />
+          <span className="text-[13px] font-medium text-[var(--color-accent)]">
+            Recording — tap to stop
+          </span>
         </div>
       )}
 
       <div className="flex items-end gap-2">
-        <div className="flex min-h-[36px] flex-1 items-end rounded-[20px] border border-[var(--color-separator)] bg-[var(--color-bg-elevated)] px-3 py-1.5 shadow-sm backdrop-blur-xl">
+        <div className="flex min-h-[36px] flex-1 items-end rounded-[20px] border border-[var(--color-separator)] bg-[var(--color-bg-elevated)] px-3 py-1.5 shadow-sm">
           <textarea
             value={value}
             onChange={(e) => onChange(e.target.value)}
@@ -71,5 +68,3 @@ export function ChatInputBar({
     </div>
   );
 }
-
-export const CHAT_INPUT_HEIGHT = '5rem';

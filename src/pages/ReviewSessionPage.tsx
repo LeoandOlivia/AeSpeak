@@ -6,7 +6,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { toast } from 'sonner';
 
-import { ChatInputBar, CHAT_INPUT_HEIGHT } from '@/components/chat/ChatInputBar';
+import { ChatInputBar } from '@/components/chat/ChatInputBar';
 
 import { MessageBubble } from '@/components/chat/MessageBubble';
 
@@ -35,10 +35,6 @@ import {
 import { addMessage, endConversation } from '@/lib/services/conversation';
 
 import { DEFAULT_SETTINGS, type ReviewJudgeResult, type ReviewRating } from '@/types';
-
-
-
-const SCROLL_PADDING = `calc(${CHAT_INPUT_HEIGHT} + 3.5rem + env(safe-area-inset-bottom, 0px) + 1rem)`;
 
 
 
@@ -260,7 +256,7 @@ export function ReviewSessionPage() {
 
   return (
 
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
 
       <div className="mx-4 mt-2 shrink-0">
 
@@ -284,13 +280,7 @@ export function ReviewSessionPage() {
 
 
 
-      <div
-
-        className="min-h-0 flex-1 overflow-y-auto px-4 py-3"
-
-        style={{ paddingBottom: SCROLL_PADDING }}
-
-      >
+      <div className="scroll-area min-h-0 flex-1 px-4 py-3">
 
         {messages?.map((m) => (
 
@@ -312,13 +302,7 @@ export function ReviewSessionPage() {
 
       {showRating ? (
 
-        <div
-
-          className="fixed left-1/2 z-40 w-full max-w-[430px] -translate-x-1/2 border-t border-[var(--color-separator)] bg-[var(--color-bg-elevated)]/95 p-4 backdrop-blur-md"
-
-          style={{ bottom: `calc(3.5rem + env(safe-area-inset-bottom, 0px))` }}
-
-        >
+        <div className="shrink-0 border-t border-[var(--color-separator)] bg-[var(--color-bg-nav)] p-4 backdrop-blur-md">
 
           <p className="mb-3 text-center text-sm font-semibold text-[var(--color-label)]">
 
