@@ -116,7 +116,7 @@ export async function detectExpressionError(
 
   if (!result.isExpressionError) return;
   if (result.severity === 'low') return;
-  if (!result.originalExpression || !result.correctExpression || !result.explanationZh) return;
+  if (!result.originalExpression || !result.correctExpression || !result.explanation) return;
 
   const errorId = uuidv4();
   await db.errorRecords.add({
@@ -126,7 +126,7 @@ export async function detectExpressionError(
     scenarioId,
     originalExpression: result.originalExpression,
     correctExpression: result.correctExpression,
-    explanationZh: result.explanationZh,
+    explanation: result.explanation,
     contextSnippet,
     createdAt: Date.now(),
   });

@@ -38,7 +38,7 @@ export const edgeTts: TtsProvider = {
         await synthesizeViaBrowserSpeech('Hello', 'en-US-JennyNeural');
         return;
       }
-      throw new Error('Edge TTS 与系统朗读均不可用');
+      throw new Error('Edge TTS and system speech are both unavailable');
     }
   },
 
@@ -53,7 +53,7 @@ export const edgeTts: TtsProvider = {
         buffers.push(await synthesizeChunkEdge(chunk, voice));
       } catch {
         if (!isBrowserSpeechAvailable()) {
-          throw new Error('Edge TTS 不可用，且当前环境不支持系统朗读');
+          throw new Error('Edge TTS unavailable and system speech is not supported in this environment');
         }
         if (!usedBrowser) {
           await synthesizeViaBrowserSpeech(options.text, voice);

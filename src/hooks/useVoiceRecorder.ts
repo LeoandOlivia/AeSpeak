@@ -31,7 +31,7 @@ function blobToBase64(blob: Blob): Promise<string> {
   });
 }
 
-/** Android 真机始终可用；浏览器仅在 pnpm dev 时可测（正式 App 内 WebView 走原生） */
+/** Native Android always available; browser only in pnpm dev (production WebView uses native). */
 export function isVoiceInputAvailable(): boolean {
   return isNativePlatform() || import.meta.env.DEV;
 }
@@ -67,11 +67,11 @@ export function useVoiceRecorder(settings: UserSettings) {
   const validateCapture = useCallback((byteLength: number, startedAt: number): boolean => {
     const elapsed = Date.now() - startedAt;
     if (elapsed < MIN_RECORDING_MS) {
-      toast.error('录音太短', { description: '请至少说 1 秒英文再停止' });
+      toast.error('Recording too short', { description: 'Speak at least 1 second of English before stopping' });
       return false;
     }
     if (byteLength < MIN_AUDIO_BYTES) {
-      toast.error('未录到有效音频', { description: '请检查麦克风权限或靠近话筒再试' });
+      toast.error('No valid audio captured', { description: 'Check mic permissions or move closer to the microphone' });
       return false;
     }
     return true;
@@ -79,11 +79,11 @@ export function useVoiceRecorder(settings: UserSettings) {
 
   const finishText = useCallback((text: string | null, silent = false): string | null => {
     if (!text) {
-      toast.error('未识别到语音内容', { description: '请清晰说英文，避免背景噪音' });
+      toast.error('No speech detected', { description: 'Speak clearly in English and reduce background noise' });
       return null;
     }
     if (!silent) {
-      toast.success('识别完成', { description: text.length > 80 ? `${text.slice(0, 80)}…` : text });
+      toast.success('Transcription complete', { description: text.length > 80 ? `${text.slice(0, 80)}…` : text });
     }
     return text;
   }, []);
@@ -107,13 +107,13 @@ export function useVoiceRecorder(settings: UserSettings) {
       setRecorderState('transcribing');
       try {
         if (!navigator.onLine) {
-          toast.error('网络不可用，无法识别');
+          toast.error('Network unavailable — cannot transcribe');
           return null;
         }
         const text = await transcribeAudio({ settings, audioBase64: base64, mimeType });
         return finishText(text);
       } catch (e) {
-        const msg = e instanceof Error ? e.message : '语音识别失败';
+        const msg = e instanceof Error ? e.message : 'Speech recognition failed';
         toast.error(formatSttErrorMessage(msg));
         return null;
       } finally {
@@ -133,9 +133,9 @@ export function useVoiceRecorder(settings: UserSettings) {
       return transcribe(base64, mimeType, byteLength, startedAt);
     } catch (e) {
       setRecorderState('idle');
-      const msg = e instanceof Error ? e.message : '原生录音失败';
+      const msg = e instanceof Error ? e.message : 'Native recording failed';
       if (msg.toLowerCase().includes('empty') || msg.toLowerCase().includes('short')) {
-        toast.error('录音太短', { description: '请至少说 1 秒英文再停止' });
+        toast.error('Recording too short', { description: 'Speak at least 1 second of English before stopping' });
       } else {
         toast.error(msg);
       }
@@ -170,15 +170,15 @@ export function useVoiceRecorder(settings: UserSettings) {
   const startNativeRecording = useCallback(async () => {
     const ok = await ensureMicPermission();
     if (!ok) {
-      toast.error('麦克风权限被拒绝');
+      toast.error('Microphone permission denied');
       return;
     }
     await nativeStartRecording();
     startedAtRef.current = Date.now();
     setRecorderState('recording');
-    toast.message('录音中…', { description: '说完后点话筒停止，将自动发送' });
+    toast.message('Recording…', { description: 'Tap the mic again when done — message sends automatically' });
     timerRef.current = window.setTimeout(() => {
-      toast.message('已达 60 秒上限，自动停止');
+      toast.message('60-second limit reached — stopping automatically');
       void stopNativeRecording();
     }, MAX_DURATION_MS);
   }, [stopNativeRecording]);
@@ -202,9 +202,9 @@ export function useVoiceRecorder(settings: UserSettings) {
     mediaRef.current = recorder;
     startedAtRef.current = Date.now();
     setRecorderState('recording');
-    toast.message('录音中…', { description: '说完后点话筒停止，将自动发送' });
+    toast.message('Recording…', { description: 'Tap the mic again when done — message sends automatically' });
     timerRef.current = window.setTimeout(() => {
-      toast.message('已达 60 秒上限，自动停止');
+      toast.message('60-second limit reached — stopping automatically');
       void stopWebRecording();
     }, MAX_DURATION_MS);
   }, [stopWebRecording]);
@@ -225,7 +225,7 @@ export function useVoiceRecorder(settings: UserSettings) {
   const toggle = useCallback(
     async (onResult: (text: string) => void) => {
       if (!isAvailable) {
-        toast.message('语音输入不可用');
+        toast.message('Voice input unavailable');
         return;
       }
 
@@ -233,7 +233,7 @@ export function useVoiceRecorder(settings: UserSettings) {
         try {
           await startRecording();
         } catch {
-          toast.error('无法访问麦克风，请检查权限');
+          toast.error('Cannot access microphone — check permissions');
         }
       } else if (stateRef.current === 'recording') {
         const text = await stopRecording();

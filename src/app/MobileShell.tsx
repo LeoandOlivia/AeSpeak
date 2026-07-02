@@ -16,34 +16,34 @@ function getPageMeta(
   large?: boolean;
 } {
   if (pathname === '/') {
-    return { title: '练习', showBack: false, large: true };
+    return { title: 'Practice', showBack: false, large: true };
   }
   if (pathname === '/history') {
-    return { title: '历史', showBack: false, large: true };
+    return { title: 'History', showBack: false, large: true };
   }
   if (pathname === '/review') {
-    return { title: '复习', showBack: false, large: true };
+    return { title: 'Review', showBack: false, large: true };
   }
   if (pathname === '/settings') {
-    return { title: '设置', showBack: false, large: true };
+    return { title: 'Settings', showBack: false, large: true };
   }
   if (pathname.startsWith('/scene/')) {
     const cat = pathname.replace('/scene/', '') as ScenarioCategory;
     return {
-      title: CATEGORY_LABELS[cat] ?? '场景',
+      title: CATEGORY_LABELS[cat] ?? 'Section',
       showBack: true,
       backTo: '/',
     };
   }
   if (pathname.startsWith('/chat/')) {
     return {
-      title: '对话',
+      title: 'Conversation',
       showBack: true,
       backTo: navFrom ?? '/',
     };
   }
   if (pathname.startsWith('/review/session/')) {
-    return { title: '复习', showBack: true, backTo: '/review' };
+    return { title: 'Review', showBack: true, backTo: '/review' };
   }
   return { title: 'eSpeak', showBack: true, backTo: '/' };
 }
@@ -67,7 +67,7 @@ export function MobileShell() {
   };
 
   return (
-    <div className="relative mx-auto flex h-[100dvh] max-w-[430px] flex-col bg-[var(--color-bg)]">
+    <div className="app-paper-bg relative mx-auto flex h-[100dvh] max-w-[430px] flex-col">
       {!isHome && (
         <PageHeader
           title={meta.title}

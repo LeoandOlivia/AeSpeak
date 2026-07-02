@@ -1,118 +1,68 @@
 import type { ScenarioCategory } from '@/types';
+import {
+  MAIN_CATEGORY_IMAGES,
+  MAIN_CATEGORY_TAGLINES,
+  REVIEW_SECTION_IMAGE,
+  REVIEW_SECTION_TAGLINE,
+  getScenarioImage,
+} from '@/lib/scenario-images';
 
 export interface SceneTileArt {
   label: string;
-  emoji: string;
-  /** iOS-style app icon gradient */
-  iconBg: string;
-  iconColor: string;
+  tagline: string;
+  imageUrl: string;
 }
 
 export const MAIN_SCENE_ART: Record<ScenarioCategory, SceneTileArt> = {
   daily_life: {
-    label: '日常生活',
-    emoji: '🏠',
-    iconBg: 'linear-gradient(145deg, #FF9500 0%, #FFCC00 100%)',
-    iconColor: '#FFFFFF',
+    label: 'Daily Life',
+    tagline: MAIN_CATEGORY_TAGLINES.daily_life,
+    imageUrl: MAIN_CATEGORY_IMAGES.daily_life,
   },
   social: {
-    label: '社交人际',
-    emoji: '💬',
-    iconBg: 'linear-gradient(145deg, #FF2D55 0%, #FF6482 100%)',
-    iconColor: '#FFFFFF',
+    label: 'Social',
+    tagline: MAIN_CATEGORY_TAGLINES.social,
+    imageUrl: MAIN_CATEGORY_IMAGES.social,
   },
   academic: {
-    label: '学术校园',
-    emoji: '🎓',
-    iconBg: 'linear-gradient(145deg, #5856D6 0%, #AF52DE 100%)',
-    iconColor: '#FFFFFF',
+    label: 'Academic',
+    tagline: MAIN_CATEGORY_TAGLINES.academic,
+    imageUrl: MAIN_CATEGORY_IMAGES.academic,
   },
   travel: {
-    label: '旅游出行',
-    emoji: '✈️',
-    iconBg: 'linear-gradient(145deg, #32ADE6 0%, #5AC8FA 100%)',
-    iconColor: '#FFFFFF',
+    label: 'Travel',
+    tagline: MAIN_CATEGORY_TAGLINES.travel,
+    imageUrl: MAIN_CATEGORY_IMAGES.travel,
   },
   business: {
-    label: '商务职场',
-    emoji: '💼',
-    iconBg: 'linear-gradient(145deg, #007AFF 0%, #5AC8FA 100%)',
-    iconColor: '#FFFFFF',
+    label: 'Business',
+    tagline: MAIN_CATEGORY_TAGLINES.business,
+    imageUrl: MAIN_CATEGORY_IMAGES.business,
   },
   free_chat: {
-    label: '自由对话',
-    emoji: '🌟',
-    iconBg: 'linear-gradient(145deg, #34C759 0%, #30D158 100%)',
-    iconColor: '#FFFFFF',
+    label: 'Free Chat',
+    tagline: MAIN_CATEGORY_TAGLINES.free_chat,
+    imageUrl: MAIN_CATEGORY_IMAGES.free_chat,
   },
-};
-
-/** 各场景下 6 个小情景（2×3） */
-export const SUB_SCENE_TILES: Record<
-  Exclude<ScenarioCategory, 'free_chat'>,
-  { emoji: string; iconBg: string }[]
-> = {
-  daily_life: [
-    { emoji: '🍽️', iconBg: 'linear-gradient(145deg, #FF9500, #FFCC00)' },
-    { emoji: '🛒', iconBg: 'linear-gradient(145deg, #FF6482, #FF2D55)' },
-    { emoji: '🏥', iconBg: 'linear-gradient(145deg, #34C759, #30D158)' },
-    { emoji: '🗺️', iconBg: 'linear-gradient(145deg, #32ADE6, #007AFF)' },
-    { emoji: '🏦', iconBg: 'linear-gradient(145deg, #5856D6, #AF52DE)' },
-    { emoji: '🏡', iconBg: 'linear-gradient(145deg, #FF9500, #FF6482)' },
-  ],
-  social: [
-    { emoji: '👋', iconBg: 'linear-gradient(145deg, #FF2D55, #FF6482)' },
-    { emoji: '🎉', iconBg: 'linear-gradient(145deg, #AF52DE, #5856D6)' },
-    { emoji: '🙏', iconBg: 'linear-gradient(145deg, #FF9500, #FFCC00)' },
-    { emoji: '📨', iconBg: 'linear-gradient(145deg, #007AFF, #5AC8FA)' },
-    { emoji: '📞', iconBg: 'linear-gradient(145deg, #34C759, #30D158)' },
-    { emoji: '💝', iconBg: 'linear-gradient(145deg, #FF6482, #FF2D55)' },
-  ],
-  academic: [
-    { emoji: '✋', iconBg: 'linear-gradient(145deg, #5856D6, #AF52DE)' },
-    { emoji: '📖', iconBg: 'linear-gradient(145deg, #007AFF, #5AC8FA)' },
-    { emoji: '👥', iconBg: 'linear-gradient(145deg, #34C759, #30D158)' },
-    { emoji: '📝', iconBg: 'linear-gradient(145deg, #FF9500, #FFCC00)' },
-    { emoji: '🧑‍🏫', iconBg: 'linear-gradient(145deg, #32ADE6, #007AFF)' },
-    { emoji: '🎭', iconBg: 'linear-gradient(145deg, #FF6482, #AF52DE)' },
-  ],
-  travel: [
-    { emoji: '🛫', iconBg: 'linear-gradient(145deg, #32ADE6, #007AFF)' },
-    { emoji: '🏨', iconBg: 'linear-gradient(145deg, #5856D6, #AF52DE)' },
-    { emoji: '🧭', iconBg: 'linear-gradient(145deg, #34C759, #30D158)' },
-    { emoji: '🚗', iconBg: 'linear-gradient(145deg, #FF9500, #FFCC00)' },
-    { emoji: '🎫', iconBg: 'linear-gradient(145deg, #FF6482, #FF2D55)' },
-    { emoji: '🔍', iconBg: 'linear-gradient(145deg, #007AFF, #5AC8FA)' },
-  ],
-  business: [
-    { emoji: '🤝', iconBg: 'linear-gradient(145deg, #007AFF, #5AC8FA)' },
-    { emoji: '📊', iconBg: 'linear-gradient(145deg, #5856D6, #AF52DE)' },
-    { emoji: '📧', iconBg: 'linear-gradient(145deg, #32ADE6, #007AFF)' },
-    { emoji: '📽️', iconBg: 'linear-gradient(145deg, #FF9500, #FFCC00)' },
-    { emoji: '⚠️', iconBg: 'linear-gradient(145deg, #FF6482, #FF2D55)' },
-    { emoji: '🌐', iconBg: 'linear-gradient(145deg, #34C759, #30D158)' },
-  ],
 };
 
 export function getMainSceneArt(category: ScenarioCategory): SceneTileArt {
   return MAIN_SCENE_ART[category];
 }
 
-export function getSubSceneTile(
-  category: Exclude<ScenarioCategory, 'free_chat'>,
-  index: number,
-) {
-  return SUB_SCENE_TILES[category][index] ?? SUB_SCENE_TILES[category][0];
+export function getSubSceneImage(scenarioId: string): string {
+  return getScenarioImage(scenarioId);
 }
 
-/** @deprecated use getMainSceneArt */
+export { getScenarioImage, REVIEW_SECTION_IMAGE, REVIEW_SECTION_TAGLINE };
+
 export function getCategoryArt(category: ScenarioCategory) {
   const art = MAIN_SCENE_ART[category];
   return {
     label: art.label,
-    emoji: art.emoji,
+    emoji: '',
     gradient: '',
     accent: '',
-    image: '',
+    image: art.imageUrl,
   };
 }

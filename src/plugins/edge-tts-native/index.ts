@@ -15,6 +15,6 @@ export async function synthesizeViaNativeEdge(text: string, voice: string): Prom
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  if (bytes.byteLength === 0) throw new Error(`原生 Edge TTS 返回空音频 (${mimeType})`);
+  if (bytes.byteLength === 0) throw new Error(`Native Edge TTS returned empty audio (${mimeType})`);
   return bytes.buffer;
 }

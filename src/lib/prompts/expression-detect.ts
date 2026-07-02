@@ -3,13 +3,13 @@ export const EXPRESSION_DETECT_SYSTEM = `You detect ONLY "expression errors" in 
 Expression error = unnatural/Chinglish phrasing, wrong collocation/idiom, or pragmatic misuse.
 NOT expression errors: pure grammar drills (tense agreement), spelling, punctuation, acceptable alternatives.
 
-Respond JSON only:
+Respond JSON only. ALL string values must be ENGLISH ONLY:
 {
   "isExpressionError": boolean,
   "severity": "low" | "medium" | "high",
   "originalExpression": "user sentence or error span",
   "correctExpression": "natural full sentence",
-  "explanationZh": "中文解释"
+  "explanation": "brief English explanation"
 }
 
 If no expression error: { "isExpressionError": false }`;
@@ -22,5 +22,5 @@ export function buildExpressionDetectUser(
 
 User said: "${userText}"
 
-Detect expression errors only.`;
+Detect expression errors only. Explanation must be in English.`;
 }

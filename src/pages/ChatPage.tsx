@@ -10,7 +10,7 @@ import { ChatInputBar, CHAT_INPUT_HEIGHT } from '@/components/chat/ChatInputBar'
 
 import { MessageBubble } from '@/components/chat/MessageBubble';
 
-import { getMainSceneArt, getSubSceneTile } from '@/lib/category-art';
+import { getMainSceneArt, getSubSceneImage } from '@/lib/category-art';
 
 import { getSpeakableText } from '@/lib/prompts/practice-guide';
 
@@ -24,7 +24,7 @@ import { db } from '@/lib/db';
 
 import { endConversation, getConversationErrors } from '@/lib/services/conversation';
 
-import { DEFAULT_SETTINGS, type ScenarioCategory } from '@/types';
+import { DEFAULT_SETTINGS } from '@/types';
 
 
 
@@ -78,19 +78,6 @@ export function ChatPage() {
 
   );
 
-  const categoryScenarios = useLiveQuery(
-
-    async () => {
-
-      if (!scenario || scenario.category === 'free_chat') return [];
-
-      return db.scenarios.where('category').equals(scenario.category).sortBy('title');
-
-    },
-
-    [scenario?.category],
-
-  );
 
   const messages = useLiveQuery(
 
@@ -157,32 +144,17 @@ export function ChatPage() {
 
 
   const sceneTile = useMemo(() => {
-
     if (!scenario) return null;
-
     if (scenario.category === 'free_chat') {
-
       return getMainSceneArt('free_chat');
-
     }
-
-    const idx = categoryScenarios?.findIndex((s) => s.id === scenario.id) ?? 0;
-
-    const sub = getSubSceneTile(
-
-      scenario.category as Exclude<ScenarioCategory, 'free_chat'>,
-
-      Math.max(0, idx),
-
-    );
-
-    return { emoji: sub.emoji, iconBg: sub.iconBg, label: scenario.title };
-
-  }, [scenario, categoryScenarios]);
+    const imageUrl = getSubSceneImage(scenario.id);
+    return { imageUrl, label: scenario.title };
+  }, [scenario]);
 
 
 
-  // 切换对话时重置状态；已有消息标记为已朗读，避免重播
+  // Reset on conversation switch; mark existing messages as already spoken
 
   useEffect(() => {
 
@@ -216,7 +188,7 @@ export function ChatPage() {
 
 
 
-  // 进入对话：AI 主动开场引导
+  // On enter: AI sends opening message
 
   useEffect(() => {
 
@@ -278,7 +250,7 @@ export function ChatPage() {
 
     if (list.length === 0) {
 
-      toast.message('对话已结束');
+      toast.message('Conversation ended');
 
     }
 
@@ -292,7 +264,7 @@ export function ChatPage() {
 
       <div className="flex h-full items-center justify-center text-[var(--color-label-secondary)]">
 
-        对话不存在
+        Conversation not found
 
       </div>
 
@@ -312,15 +284,15 @@ export function ChatPage() {
 
           <div className="mb-2 text-4xl">{errors.length === 0 ? '🎉' : '📝'}</div>
 
-          <h2 className="text-xl font-bold text-[var(--color-label)]">对话结束</h2>
+          <h2 className="text-xl font-bold text-[var(--color-label)]">Conversation ended</h2>
 
           <p className="mt-1 text-[15px] text-[var(--color-label-secondary)]">
 
             {errors.length === 0
 
-              ? '本次没有检测到表达错误，继续保持！'
+              ? 'No expression errors detected. Keep it up!'
 
-              : `发现 ${errors.length} 处表达可以改进`}
+              : `${errors.length} expression(s) to improve`}
 
           </p>
 
@@ -340,7 +312,7 @@ export function ChatPage() {
 
                 <p className="mt-1 text-[15px] font-semibold text-[#34C759]">✓ {e.correctExpression}</p>
 
-                <p className="mt-2 text-[13px] text-[var(--color-label-secondary)]">{e.explanationZh}</p>
+                <p className="mt-2 text-[13px] text-[var(--color-label-secondary)]">{e.explanation}</p>
 
               </li>
 
@@ -364,7 +336,7 @@ export function ChatPage() {
 
           >
 
-            继续练习
+            Continue practicing
 
           </button>
 
@@ -380,7 +352,7 @@ export function ChatPage() {
 
             >
 
-              去复习
+              Go to review
 
             </button>
 
@@ -408,17 +380,15 @@ export function ChatPage() {
 
         <div className="mx-3 mt-1 flex shrink-0 items-center gap-2.5 rounded-xl bg-[var(--color-bg-elevated)] px-3 py-2 shadow-sm">
 
-          <div
+          <img
 
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-lg"
+            src={sceneTile.imageUrl}
 
-            style={{ background: sceneTile.iconBg }}
+            alt=""
 
-          >
+            className="h-9 w-9 shrink-0 rounded-[10px] object-cover"
 
-            {sceneTile.emoji}
-
-          </div>
+          />
 
           <div className="min-w-0 flex-1">
 
@@ -442,7 +412,7 @@ export function ChatPage() {
 
             >
 
-              结束
+              End
 
             </button>
 
@@ -466,7 +436,7 @@ export function ChatPage() {
 
           <p className="py-8 text-center text-[15px] text-[var(--color-label-secondary)]">
 
-            AI 正在准备开场…
+            AI is preparing the opening…
 
           </p>
 
@@ -490,7 +460,7 @@ export function ChatPage() {
 
           >
 
-            重试上一条
+            Retry last message
 
           </button>
 
@@ -520,7 +490,7 @@ export function ChatPage() {
 
           showVoice={voiceAvailable}
 
-          placeholder="输入英文或点话筒说话"
+          placeholder="Type in English or tap the mic"
 
         />
 

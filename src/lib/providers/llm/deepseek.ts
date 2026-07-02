@@ -14,7 +14,7 @@ export const deepseekLlm: LlmProvider = {
 
   async validate(settings: UserSettings) {
     if (!settings.deepseekKey) {
-      throw new ProviderError('DeepSeek Key 未配置', 'deepseek');
+      throw new ProviderError('DeepSeek Key not configured', 'deepseek');
     }
     const baseUrl = getDeepseekBaseUrl(settings);
     const response = await fetch(`${baseUrl}/models`, {
@@ -22,7 +22,7 @@ export const deepseekLlm: LlmProvider = {
     });
     if (!response.ok) {
       throw new ProviderError(
-        `DeepSeek Key 验证失败（${response.status}），请检查 Key 或中转 Base URL`,
+        `DeepSeek Key validation failed (${response.status}) — check Key or relay Base URL`,
         'deepseek',
       );
     }

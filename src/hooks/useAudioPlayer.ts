@@ -24,7 +24,7 @@ export function useAudioPlayer(settings: UserSettings) {
       stop();
 
       if (!navigator.onLine && !settings.mockVoice) {
-        toast.error('网络不可用，无法朗读');
+        toast.error('Network unavailable — cannot play speech');
         return;
       }
 
@@ -33,7 +33,7 @@ export function useAudioPlayer(settings: UserSettings) {
         const buffer = await synthesizeSpeech({ settings, text, voice: settings.ttsVoice });
         if (settings.mockVoice || buffer.byteLength === 0) {
           if (buffer.byteLength === 0) {
-            // Edge/系统降级：尝试浏览器朗读
+            // Edge/system fallback: try browser speech synthesis
             if ('speechSynthesis' in window) {
               const u = new SpeechSynthesisUtterance(text);
               u.lang = 'en-US';
@@ -52,12 +52,12 @@ export function useAudioPlayer(settings: UserSettings) {
           setPlayingId(null);
         };
         audio.onerror = () => {
-          toast.error('播放失败');
+          toast.error('Playback failed');
           setPlayingId(null);
         };
         await audio.play();
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : '朗读失败');
+        toast.error(e instanceof Error ? e.message : 'Speech playback failed');
       } finally {
         setLoadingId(null);
       }

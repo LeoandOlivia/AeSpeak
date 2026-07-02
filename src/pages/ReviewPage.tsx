@@ -29,19 +29,19 @@ export function ReviewPage() {
   return (
     <div className="flex h-full flex-col overflow-y-auto px-4 pb-4">
       <div className="mb-4 overflow-hidden rounded-2xl bg-[var(--color-bg-elevated)] p-5 shadow-sm">
-        <p className="text-[48px] font-bold leading-none text-[#007AFF]">{dueCards.length}</p>
-        <p className="mt-1 text-[17px] font-semibold text-[var(--color-label)]">今日待复习</p>
+        <p className="text-[48px] font-bold leading-none text-[var(--color-accent)]">{dueCards.length}</p>
+        <p className="mt-1 text-[17px] font-semibold text-[var(--color-label)]">Due for review today</p>
         <p className="mt-0.5 text-[15px] text-[var(--color-label-secondary)]">
-          把练习中的表达错误变成长期记忆
+          Turn practice mistakes into long-term memory
         </p>
       </div>
 
       {dueCards.length === 0 ? (
         <div className="flex flex-col items-center py-12 text-center">
           <div className="mb-3 text-5xl">✅</div>
-          <p className="text-[17px] font-semibold text-[var(--color-label)]">全部复习完成</p>
+          <p className="text-[17px] font-semibold text-[var(--color-label)]">All caught up</p>
           <p className="mt-1 text-[15px] text-[var(--color-label-secondary)]">
-            练习中说错表达后会自动加入复习
+            Incorrect expressions from practice are added here automatically
           </p>
         </div>
       ) : (
@@ -61,7 +61,7 @@ export function ReviewPage() {
                       {i + 1}
                     </span>
                     <span className="text-[13px] text-[var(--color-label-tertiary)]">
-                      {new Date(card.due).toLocaleDateString('zh-CN')}
+                      {new Date(card.due).toLocaleDateString('en-US')}
                     </span>
                   </div>
                   <p className="text-[15px] text-[#FF3B30] line-through">{err.originalExpression}</p>

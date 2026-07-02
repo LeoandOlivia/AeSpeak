@@ -4,7 +4,7 @@ interface IOSMicButtonProps {
   onClick: () => void;
 }
 
-/** iOS 风格话筒按钮：空闲灰色圆钮，录音红色脉冲，识别中转圈 */
+/** iOS-style mic button: idle gray, recording red pulse, transcribing spinner */
 export function IOSMicButton({ voiceState, disabled, onClick }: IOSMicButtonProps) {
   const isRecording = voiceState === 'recording';
   const isTranscribing = voiceState === 'transcribing';
@@ -14,7 +14,7 @@ export function IOSMicButton({ voiceState, disabled, onClick }: IOSMicButtonProp
       type="button"
       onClick={onClick}
       disabled={disabled || isTranscribing}
-      aria-label={isRecording ? '停止录音' : isTranscribing ? '识别中' : '语音输入'}
+      aria-label={isRecording ? 'Stop recording' : isTranscribing ? 'Transcribing' : 'Voice input'}
       className="relative flex h-[34px] w-[34px] shrink-0 items-center justify-center disabled:opacity-40"
     >
       {isRecording && (
@@ -57,14 +57,14 @@ export function IOSMicButton({ voiceState, disabled, onClick }: IOSMicButtonProp
   );
 }
 
-/** iOS 蓝色发送按钮（有文字时显示） */
+/** iOS blue send button (shown when text is present) */
 export function IOSSendButton({ disabled, onClick }: { disabled?: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      aria-label="发送"
+      aria-label="Send"
       className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-[#007AFF] transition active:scale-95 disabled:opacity-40"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

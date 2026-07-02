@@ -54,10 +54,10 @@ export class ProviderError extends Error {
 
 export function getApiKey(settings: UserSettings): string {
   if (settings.llmProvider === 'openai') {
-    if (!settings.openaiKey) throw new ProviderError('请先配置 OpenAI Key', 'openai');
+    if (!settings.openaiKey) throw new ProviderError('Please configure OpenAI Key first', 'openai');
     return settings.openaiKey;
   }
-  if (!settings.deepseekKey) throw new ProviderError('请先配置 DeepSeek Key', 'deepseek');
+  if (!settings.deepseekKey) throw new ProviderError('Please configure DeepSeek Key first', 'deepseek');
   return settings.deepseekKey;
 }
 
@@ -94,14 +94,14 @@ export function getLlmBaseUrl(settings: UserSettings): string {
 export function getLlmModel(settings: UserSettings): string {
   const raw = settings.llmModel?.trim();
   if (!raw) return settings.llmProvider === 'openai' ? 'gpt-4o-mini' : 'deepseek-chat';
-  // DeepSeek 及多数中转要求模型 id 全小写（如 deepseek-v4-flash）
+  // DeepSeek and most relays require lowercase model ids (e.g. deepseek-v4-flash)
   if (settings.llmProvider === 'deepseek') return raw.toLowerCase();
   return raw;
 }
 
 export function parseApiErrorMessage(text: string): string {
   const trimmed = text.trim();
-  if (!trimmed) return '请求失败';
+  if (!trimmed) return 'Request failed';
   try {
     const json = JSON.parse(trimmed) as { error?: { message?: string }; message?: string };
     return json.error?.message ?? json.message ?? trimmed;
@@ -119,7 +119,7 @@ export async function parseSseStream(
     throw new Error(parseApiErrorMessage(text) || `HTTP ${response.status}`);
   }
   const reader = response.body?.getReader();
-  if (!reader) throw new Error('无法读取流式响应');
+  if (!reader) throw new Error('Unable to read streaming response');
 
   const decoder = new TextDecoder();
   let buffer = '';
@@ -177,13 +177,13 @@ export async function llmJsonCompletion<T>(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `LLM 请求失败 (${response.status})`);
+    throw new Error(text || `LLM request failed (${response.status})`);
   }
 
   const json = (await response.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
   };
   const content = json.choices?.[0]?.message?.content;
-  if (!content) throw new Error('LLM 返回为空');
+  if (!content) throw new Error('LLM returned empty response');
   return JSON.parse(content) as T;
 }

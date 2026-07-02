@@ -43,7 +43,7 @@ async function synthesizeChunk(
 
   if (!response.ok) {
     const msg = await response.text();
-    throw new ProviderError(msg || `OpenAI TTS 失败 (${response.status})`, 'openai-tts');
+    throw new ProviderError(msg || `OpenAI TTS failed (${response.status})`, 'openai-tts');
   }
 
   return response.arrayBuffer();
@@ -54,7 +54,7 @@ export const openaiTts: TtsProvider = {
 
   async validate(settings: UserSettings) {
     if (!settings.openaiKey) {
-      throw new ProviderError('OpenAI Key 未配置', 'openai-tts');
+      throw new ProviderError('OpenAI Key not configured', 'openai-tts');
     }
     await synthesizeChunk(settings, 'Hello', settings.ttsVoice || 'nova');
   },
@@ -62,7 +62,7 @@ export const openaiTts: TtsProvider = {
   async synthesize(options: TtsOptions) {
     const { settings, text } = options;
     if (!settings.openaiKey) {
-      throw new ProviderError('OpenAI Key 未配置', 'openai-tts');
+      throw new ProviderError('OpenAI Key not configured', 'openai-tts');
     }
 
     const voice = options.voice ?? settings.ttsVoice ?? 'nova';

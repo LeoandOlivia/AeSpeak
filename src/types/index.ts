@@ -77,7 +77,7 @@ export interface ErrorRecord {
   scenarioId: string;
   originalExpression: string;
   correctExpression: string;
-  explanationZh: string;
+  explanation: string;
   contextSnippet?: string;
   createdAt: number;
 }
@@ -99,7 +99,7 @@ export interface ExpressionDetectResult {
   severity?: 'low' | 'medium' | 'high';
   originalExpression?: string;
   correctExpression?: string;
-  explanationZh?: string;
+  explanation?: string;
 }
 
 export interface ReviewJudgeResult {
@@ -108,12 +108,12 @@ export interface ReviewJudgeResult {
 }
 
 export const CATEGORY_LABELS: Record<ScenarioCategory, string> = {
-  daily_life: '日常生活',
-  business: '商务职场',
-  travel: '旅游出行',
-  academic: '学术校园',
-  social: '社交人际',
-  free_chat: '自由对话',
+  daily_life: 'Daily Life',
+  business: 'Business',
+  travel: 'Travel',
+  academic: 'Academic',
+  social: 'Social',
+  free_chat: 'Free Chat',
 };
 
 /** 主界面 6 大场景（2×3）显示顺序 */
@@ -127,25 +127,25 @@ export const MAIN_SCENE_ORDER: ScenarioCategory[] = [
 ];
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  beginner: '初级',
-  intermediate: '中级',
-  advanced: '高级',
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
 };
 
 export const OPENAI_TTS_VOICES: [string, string][] = [
-  ['nova', 'Nova（女声，推荐）'],
-  ['shimmer', 'Shimmer（女声）'],
-  ['alloy', 'Alloy（中性）'],
-  ['echo', 'Echo（男声）'],
-  ['fable', 'Fable（英式）'],
-  ['onyx', 'Onyx（男声）'],
+  ['nova', 'Nova (female, recommended)'],
+  ['shimmer', 'Shimmer (female)'],
+  ['alloy', 'Alloy (neutral)'],
+  ['echo', 'Echo (male)'],
+  ['fable', 'Fable (British)'],
+  ['onyx', 'Onyx (male)'],
 ];
 
 export const EDGE_TTS_VOICES: [string, string][] = [
-  ['en-US-JennyNeural', 'Jenny（美式女声）'],
-  ['en-US-GuyNeural', 'Guy（美式男声）'],
-  ['en-GB-SoniaNeural', 'Sonia（英式女声）'],
-  ['en-AU-NatashaNeural', 'Natasha（澳式女声）'],
+  ['en-US-JennyNeural', 'Jenny (US female)'],
+  ['en-US-GuyNeural', 'Guy (US male)'],
+  ['en-GB-SoniaNeural', 'Sonia (British female)'],
+  ['en-AU-NatashaNeural', 'Natasha (Australian female)'],
 ];
 
 export const DEFAULT_SETTINGS: UserSettings = {

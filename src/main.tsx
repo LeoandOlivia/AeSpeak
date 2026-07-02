@@ -23,21 +23,21 @@ function AppBootstrap() {
       })
       .catch((e) => {
         console.error('initDatabase failed:', e);
-        setError(e instanceof Error ? e.message : '初始化失败');
+        setError(e instanceof Error ? e.message : 'Initialization failed');
       });
   }, []);
 
   if (error) {
     return (
       <div className="flex h-[100dvh] flex-col items-center justify-center gap-3 bg-[var(--color-bg)] px-6 text-center">
-        <p className="text-[17px] font-semibold text-[#FF3B30]">加载失败</p>
+        <p className="text-[17px] font-semibold text-[#FF3B30]">Failed to load</p>
         <p className="text-[15px] text-[var(--color-label-secondary)]">{error}</p>
         <button
           type="button"
           onClick={() => window.location.reload()}
           className="mt-2 rounded-xl bg-[#007AFF] px-6 py-2.5 text-[17px] font-semibold text-white"
         >
-          重试
+          Retry
         </button>
       </div>
     );
@@ -46,7 +46,7 @@ function AppBootstrap() {
   if (!ready) {
     return (
       <div className="flex h-[100dvh] flex-col items-center justify-center bg-[var(--color-bg)] text-[var(--color-label-secondary)]">
-        <p className="text-[17px] font-medium">加载中…</p>
+        <p className="text-[17px] font-medium">Loading…</p>
       </div>
     );
   }

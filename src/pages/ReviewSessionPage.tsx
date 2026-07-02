@@ -44,13 +44,13 @@ const SCROLL_PADDING = `calc(${CHAT_INPUT_HEIGHT} + 3.5rem + env(safe-area-inset
 
 const RATING_OPTIONS: { rating: ReviewRating; label: string; emoji: string; color: string }[] = [
 
-  { rating: 'again', label: '忘了', emoji: '😅', color: 'bg-red-50 text-red-500' },
+  { rating: 'again', label: 'Forgot', emoji: '😅', color: 'bg-red-50 text-red-500' },
 
-  { rating: 'hard', label: '困难', emoji: '😓', color: 'bg-orange-50 text-orange-500' },
+  { rating: 'hard', label: 'Hard', emoji: '😓', color: 'bg-orange-50 text-orange-500' },
 
-  { rating: 'good', label: '不错', emoji: '😊', color: 'bg-green-50 text-green-600' },
+  { rating: 'good', label: 'Good', emoji: '😊', color: 'bg-green-50 text-green-600' },
 
-  { rating: 'easy', label: '简单', emoji: '🎉', color: 'bg-[var(--color-fill-secondary)] text-[#007AFF]' },
+  { rating: 'easy', label: 'Easy', emoji: '🎉', color: 'bg-[var(--color-fill-secondary)] text-[#007AFF]' },
 
 ];
 
@@ -206,7 +206,7 @@ export function ReviewSessionPage() {
 
         setShowRating(true);
 
-        toast.success('表达正确！请自评掌握程度');
+        toast.success('Correct! Rate how well you know it');
 
       }
 
@@ -234,7 +234,7 @@ export function ReviewSessionPage() {
 
     await endConversation(conversationId);
 
-    toast.message('复习完成');
+    toast.message('Review complete');
 
     navigate('/review');
 
@@ -248,7 +248,7 @@ export function ReviewSessionPage() {
 
       <div className="flex h-full items-center justify-center text-[var(--color-label-secondary)]">
 
-        复习项不存在
+        Review item not found
 
       </div>
 
@@ -268,7 +268,7 @@ export function ReviewSessionPage() {
 
           <p className="text-[10px] font-semibold text-[var(--color-label-secondary)]">
 
-            复习目标（不会直接告诉你答案）
+            Review goal (answer not revealed)
 
           </p>
 
@@ -300,7 +300,7 @@ export function ReviewSessionPage() {
 
         {judging && (
 
-          <p className="text-center text-xs text-[var(--color-label-secondary)]">判定中…</p>
+          <p className="text-center text-xs text-[var(--color-label-secondary)]">Checking…</p>
 
         )}
 
@@ -322,7 +322,7 @@ export function ReviewSessionPage() {
 
           <p className="mb-3 text-center text-sm font-semibold text-[var(--color-label)]">
 
-            掌握程度如何？
+            How well did you know it?
 
           </p>
 
@@ -376,7 +376,7 @@ export function ReviewSessionPage() {
 
           showVoice={voiceAvailable}
 
-          placeholder="用英文回答…"
+          placeholder="Reply in English…"
 
         />
 

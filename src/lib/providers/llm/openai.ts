@@ -14,7 +14,7 @@ export const openaiLlm: LlmProvider = {
 
   async validate(settings: UserSettings) {
     if (!settings.openaiKey) {
-      throw new ProviderError('OpenAI Key 未配置', 'openai');
+      throw new ProviderError('OpenAI Key not configured', 'openai');
     }
     const baseUrl = getOpenAiBaseUrl(settings);
     const response = await fetch(`${baseUrl}/models`, {
@@ -22,7 +22,7 @@ export const openaiLlm: LlmProvider = {
     });
     if (!response.ok) {
       throw new ProviderError(
-        `OpenAI Key 验证失败（${response.status}），请检查 Key 或中转 Base URL`,
+        `OpenAI Key validation failed (${response.status}) — check Key or relay Base URL`,
         'openai',
       );
     }

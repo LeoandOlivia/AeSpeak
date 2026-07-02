@@ -15,10 +15,10 @@ export function isOpenRouterAudioBalanceError(message: string): boolean {
 
 export function formatSttErrorMessage(message: string): string {
   if (isOpenRouterAudioBalanceError(message)) {
-    return 'OpenRouter 语音功能需账户余额 ≥ $0.50，请前往 openrouter.ai 充值';
+    return 'OpenRouter voice features require account balance ≥ $0.50 — top up at openrouter.ai';
   }
   if (isWhisperChannelError(message)) {
-    return '中转站未开通 Whisper，请确认模型名与账号权限';
+    return 'Relay has not enabled Whisper — verify model name and account permissions';
   }
   return message;
 }
@@ -89,7 +89,7 @@ async function postOpenRouterTranscription(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new ProviderError(parseApiErrorMessage(text) || 'Whisper 识别失败', 'whisper');
+    throw new ProviderError(parseApiErrorMessage(text) || 'Whisper transcription failed', 'whisper');
   }
 
   const json = (await response.json()) as { text?: string };
@@ -123,7 +123,7 @@ async function postOpenAiMultipartTranscription(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new ProviderError(parseApiErrorMessage(text) || 'Whisper 识别失败', 'whisper');
+    throw new ProviderError(parseApiErrorMessage(text) || 'Whisper transcription failed', 'whisper');
   }
 
   const json = (await response.json()) as { text?: string };
@@ -147,7 +147,7 @@ export const whisperStt: SttProvider = {
 
   async validate(settings: UserSettings) {
     if (!settings.openaiKey) {
-      throw new ProviderError('OpenAI Key 未配置（Whisper 需要）', 'whisper');
+      throw new ProviderError('OpenAI Key not configured (required for Whisper)', 'whisper');
     }
     const baseUrl = getOpenAiBaseUrl(settings);
     const response = await fetch(`${baseUrl}/models`, {
@@ -157,7 +157,7 @@ export const whisperStt: SttProvider = {
       const text = await response.text();
       throw new ProviderError(
         parseApiErrorMessage(text) ||
-          `Key 验证失败（${response.status}），请检查 Key 或 Base URL`,
+          `Key validation failed (${response.status}) — check Key or Base URL`,
         'whisper',
       );
     }
@@ -166,7 +166,7 @@ export const whisperStt: SttProvider = {
   async transcribe(options: SttOptions) {
     const { settings, audioBase64, mimeType } = options;
     if (!settings.openaiKey) {
-      throw new ProviderError('OpenAI Key 未配置', 'whisper');
+      throw new ProviderError('OpenAI Key not configured', 'whisper');
     }
     return postWhisperTranscription(settings, audioBase64, mimeType);
   },

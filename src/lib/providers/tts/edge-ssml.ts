@@ -142,7 +142,7 @@ function speakOneUtterance(
       const code = event.error ?? 'unknown';
       // cancel() on a previous utterance triggers these — not a real failure
       if (code === 'canceled' || code === 'interrupted') return;
-      fail(`系统朗读失败 (${code})`);
+      fail(`System speech failed (${code})`);
     };
 
     const start = () => {
@@ -170,7 +170,7 @@ function speakOneUtterance(
 
 export async function speakWithBrowserVoice(text: string, edgeVoice: string): Promise<void> {
   if (!('speechSynthesis' in window)) {
-    throw new Error('当前环境不支持系统朗读');
+    throw new Error('System speech is not supported in this environment');
   }
 
   const trimmed = text.trim();

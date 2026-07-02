@@ -40,7 +40,7 @@ export async function synthesizeViaWebSocket(text: string, voice: string): Promi
       if (!settled) {
         settled = true;
         ws.close();
-        reject(new Error('Edge TTS 连接超时'));
+        reject(new Error('Edge TTS connection timed out'));
       }
     }, 25_000);
 
@@ -73,7 +73,7 @@ export async function synthesizeViaWebSocket(text: string, voice: string): Promi
       window.clearTimeout(timeout);
       reject(
         new Error(
-          'Edge TTS WebSocket 403/失败（浏览器无法设置 User-Agent，请用 dev 代理或 Android 原生）',
+          'Edge TTS WebSocket failed (403 — browser cannot set User-Agent; use dev proxy or Android native)',
         ),
       );
     };
@@ -83,7 +83,7 @@ export async function synthesizeViaWebSocket(text: string, voice: string): Promi
       settled = true;
       window.clearTimeout(timeout);
       if (!chunks.length) {
-        reject(new Error('Edge TTS 未返回音频'));
+        reject(new Error('Edge TTS returned no audio'));
         return;
       }
       const total = chunks.reduce((n, c) => n + c.length, 0);
@@ -106,7 +106,7 @@ export async function synthesizeViaDevProxy(text: string, voice: string): Promis
   });
   if (!response.ok) {
     const msg = await response.text();
-    throw new Error(msg || `Edge TTS 代理失败 (${response.status})`);
+    throw new Error(msg || `Edge TTS proxy failed (${response.status})`);
   }
   return response.arrayBuffer();
 }

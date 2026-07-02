@@ -9,11 +9,11 @@ export function hasOpenAiRelay(settings: UserSettings): boolean {
 
 export function getOpenAiKey(settings: UserSettings): string {
   const key = settings.openaiKey.trim();
-  if (!key) throw new Error('请先配置 OpenAI API Key');
+  if (!key) throw new Error('Please configure your OpenAI API Key first');
   return key;
 }
 
-/** 统一 OpenAI 中转：LLM + Whisper + TTS 共用 Key 与 Base URL */
+/** Unified OpenAI relay: LLM + Whisper + TTS share Key and Base URL */
 export function applyOpenAiRelayPreset(settings: UserSettings): UserSettings {
   return {
     ...settings,
@@ -44,7 +44,7 @@ export interface OpenAiRelayCheckItem {
 
 export interface OpenAiRelayCheckResult {
   ok: boolean;
-  /** Key + 对话 API 可用（最低可用标准） */
+  /** Key + chat API available (minimum usable bar) */
   coreOk: boolean;
   baseUrl: string;
   items: OpenAiRelayCheckItem[];
@@ -75,7 +75,7 @@ function suggestHint(
 
   if (id === 'connect') {
     if (lower.includes('failed to fetch') || lower.includes('networkerror')) {
-      return '多为网络或浏览器跨域限制；请检查 Base URL，或在 Android 真机上再试';
+      return 'Usually a network or CORS issue — check Base URL or try on an Android device';
     }
     if (
       status === 401 ||
@@ -84,10 +84,10 @@ function suggestHint(
       lower.includes('unauthorized') ||
       lower.includes('invalid key')
     ) {
-      return 'Key 无效、过期或余额不足，请向中转站核对';
+      return 'Invalid, expired, or insufficient balance — verify with your relay provider';
     }
     if (status === 404 || lower.includes('not found')) {
-      return 'Base URL 可能填错，一般应填到 /v1，例如 https://xxx.com/v1';
+      return 'Base URL may be wrong — usually ends at /v1, e.g. https://xxx.com/v1';
     }
   }
 
@@ -100,10 +100,10 @@ function suggestHint(
         lower.includes('invalid') ||
         lower.includes('unsupported'))
     ) {
-      return '这是模型名问题：把「对话模型」改成中转站文档里的名称（如 deepseek-chat、gpt-4o-mini）';
+      return 'Model name issue — set Chat model to a name from your relay docs (e.g. deepseek-chat, gpt-4o-mini)';
     }
     if (status === 401 || status === 403) {
-      return 'Key 无对话权限，或该模型未对你开放';
+      return 'Key lacks chat permission, or this model is not enabled for your account';
     }
   }
 
@@ -112,10 +112,10 @@ function suggestHint(
       lower.includes('no available channel') ||
       lower.includes('distributor')
     ) {
-      return '中转站未开通 Whisper，请确认模型名与账号权限';
+      return 'Relay has not enabled Whisper — verify model name and account permissions';
     }
     if (status === 404 || lower.includes('not found') || lower.includes('not supported')) {
-      return '该中转可能不支持 Whisper；若只需文字对话可忽略，或换支持语音的中转';
+      return 'This relay may not support Whisper — ignore if you only need text chat, or switch to a voice-capable relay';
     }
   }
 
@@ -124,13 +124,13 @@ function suggestHint(
       lower.includes('no available channel') ||
       lower.includes('distributor')
     ) {
-      return '中转站未开通 TTS 通道；请把下方「朗读引擎」改为 Edge TTS（免费）';
+      return 'Relay has not enabled TTS — set Speech engine below to Edge TTS (free)';
     }
     if (status === 404 || lower.includes('not found') || lower.includes('not supported')) {
-      return '该中转可能不支持 OpenAI TTS；可在设置里改「Edge TTS（免费）」';
+      return 'This relay may not support OpenAI TTS — switch to Edge TTS (free) in settings';
     }
     if (lower.includes('model') && lower.includes('tts')) {
-      return 'TTS 模型不可用，可尝试 tts-1 或确认中转是否开通朗读';
+      return 'TTS model unavailable — try tts-1 or confirm your relay supports speech';
     }
   }
 
@@ -161,9 +161,9 @@ async function checkModelsEndpoint(baseUrl: string, key: string): Promise<OpenAi
     if (response.ok) {
       return {
         id: 'connect',
-        label: 'Key 与 Base URL',
+        label: 'Key & Base URL',
         status: 'ok',
-        message: '已连通（/models）',
+        message: 'Connected (/models)',
       };
     }
 
@@ -171,9 +171,9 @@ async function checkModelsEndpoint(baseUrl: string, key: string): Promise<OpenAi
       return withHint(
         {
           id: 'connect',
-          label: 'Key 与 Base URL',
+          label: 'Key & Base URL',
           status: 'fail',
-          message: `Key 无效或无权限（${response.status}）`,
+          message: `Invalid Key or no permission (${response.status})`,
         },
         response.status,
       );
@@ -183,17 +183,17 @@ async function checkModelsEndpoint(baseUrl: string, key: string): Promise<OpenAi
     return withHint(
       {
         id: 'connect',
-        label: 'Key 与 Base URL',
+        label: 'Key & Base URL',
         status: 'fail',
         message,
       },
       response.status,
     );
   } catch (e) {
-    const message = e instanceof Error ? e.message : '网络请求失败';
+    const message = e instanceof Error ? e.message : 'Network request failed';
     return withHint({
       id: 'connect',
-      label: 'Key 与 Base URL',
+      label: 'Key & Base URL',
       status: 'fail',
       message,
     });
@@ -223,9 +223,9 @@ async function checkChatEndpoint(
     if (response.ok) {
       return {
         id: 'chat',
-        label: '对话 API',
+        label: 'Chat API',
         status: 'ok',
-        message: `模型 ${model} 可用`,
+        message: `Model ${model} is available`,
       };
     }
 
@@ -233,17 +233,17 @@ async function checkChatEndpoint(
     return withHint(
       {
         id: 'chat',
-        label: '对话 API',
+        label: 'Chat API',
         status: 'fail',
         message,
       },
       response.status,
     );
   } catch (e) {
-    const message = e instanceof Error ? e.message : '网络请求失败';
+    const message = e instanceof Error ? e.message : 'Network request failed';
     return withHint({
       id: 'chat',
-      label: '对话 API',
+      label: 'Chat API',
       status: 'fail',
       message,
     });
@@ -265,18 +265,18 @@ async function checkWhisperEndpoint(baseUrl: string, key: string): Promise<OpenA
     if (response.ok) {
       return {
         id: 'whisper',
-        label: '语音识别 API',
+        label: 'Speech recognition API',
         status: 'ok',
-        message: 'Whisper 可用',
+        message: 'Whisper is available',
       };
     }
 
     if (response.status === 400 || response.status === 422) {
       return {
         id: 'whisper',
-        label: '语音识别 API',
+        label: 'Speech recognition API',
         status: 'ok',
-        message: 'Whisper 端点可用（测试音频无效，属正常）',
+        message: 'Whisper endpoint reachable (invalid test audio is expected)',
       };
     }
 
@@ -284,9 +284,9 @@ async function checkWhisperEndpoint(baseUrl: string, key: string): Promise<OpenA
       return withHint(
         {
           id: 'whisper',
-          label: '语音识别 API',
+          label: 'Speech recognition API',
           status: 'fail',
-          message: `Key 无 Whisper 权限（${response.status}）`,
+          message: `Key lacks Whisper permission (${response.status})`,
         },
         response.status,
       );
@@ -296,17 +296,17 @@ async function checkWhisperEndpoint(baseUrl: string, key: string): Promise<OpenA
     return withHint(
       {
         id: 'whisper',
-        label: '语音识别 API',
+        label: 'Speech recognition API',
         status: 'fail',
         message,
       },
       response.status,
     );
   } catch (e) {
-    const message = e instanceof Error ? e.message : '网络请求失败';
+    const message = e instanceof Error ? e.message : 'Network request failed';
     return withHint({
       id: 'whisper',
-      label: '语音识别 API',
+      label: 'Speech recognition API',
       status: 'fail',
       message,
     });
@@ -337,9 +337,9 @@ async function checkTtsEndpoint(
     if (response.ok) {
       return {
         id: 'tts',
-        label: '朗读 API',
+        label: 'Speech API',
         status: 'ok',
-        message: `${model} · ${voice} 可用`,
+        message: `${model} · ${voice} is available`,
       };
     }
 
@@ -347,24 +347,24 @@ async function checkTtsEndpoint(
     return withHint(
       {
         id: 'tts',
-        label: '朗读 API',
+        label: 'Speech API',
         status: 'fail',
         message,
       },
       response.status,
     );
   } catch (e) {
-    const message = e instanceof Error ? e.message : '网络请求失败';
+    const message = e instanceof Error ? e.message : 'Network request failed';
     return withHint({
       id: 'tts',
-      label: '朗读 API',
+      label: 'Speech API',
       status: 'fail',
       message,
     });
   }
 }
 
-/** 分项验证 OpenAI 中转 Key 与各 API 端点是否可用 */
+/** Validate OpenAI relay Key and each API endpoint */
 export async function validateOpenAiRelayConnection(
   settings: UserSettings,
 ): Promise<OpenAiRelayCheckResult> {
@@ -383,9 +383,9 @@ export async function validateOpenAiRelayConnection(
     if (chat.status === 'ok') {
       connect = {
         id: 'connect',
-        label: 'Key 与 Base URL',
+        label: 'Key & Base URL',
         status: 'ok',
-        message: '已连通（/models 不可用，对话 API 正常）',
+        message: 'Connected (/models unavailable, chat API OK)',
       };
     }
   }
@@ -409,11 +409,11 @@ export async function validateOpenAiRelayConnection(
     !availableModels.includes(model) &&
     chat.status === 'fail'
   ) {
-    const samples = availableModels.slice(0, 4).join('、');
+    const samples = availableModels.slice(0, 4).join(', ');
     chat = {
       ...chat,
-      message: `${chat.message}（当前模型「${model}」不在 /models 列表中）`,
-      hint: chat.hint ?? `可尝试：${samples}${availableModels.length > 4 ? ' 等' : ''}`,
+      message: `${chat.message} (model "${model}" is not in /models list)`,
+      hint: chat.hint ?? `Try: ${samples}${availableModels.length > 4 ? ', etc.' : ''}`,
     };
   }
 
@@ -427,9 +427,9 @@ export async function validateOpenAiRelayConnection(
       ? await checkTtsEndpoint(baseUrl, key, ttsModel, voice)
       : {
           id: 'tts' as const,
-          label: '朗读 API',
+          label: 'Speech API',
           status: 'ok' as const,
-          message: '已跳过（当前使用 Edge TTS）',
+          message: 'Skipped (using Edge TTS)',
         };
   items.push(tts);
 

@@ -54,7 +54,7 @@ export async function transcribeAudio(options: SttOptions): Promise<string> {
       lastError = e instanceof Error ? e : new Error(String(e));
     }
   }
-  throw lastError ?? new Error('语音识别失败');
+  throw lastError ?? new Error('Speech recognition failed');
 }
 
 export async function synthesizeSpeech(options: TtsOptions): Promise<ArrayBuffer> {
@@ -75,7 +75,7 @@ export async function synthesizeSpeech(options: TtsOptions): Promise<ArrayBuffer
     }
   }
 
-  throw lastError ?? new Error('朗读失败');
+  throw lastError ?? new Error('Speech synthesis failed');
 }
 
 export async function validateStt(settings: UserSettings): Promise<void> {

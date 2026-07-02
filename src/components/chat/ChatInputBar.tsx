@@ -13,7 +13,7 @@ interface ChatInputBarProps {
 
 const BOTTOM_OFFSET = 'calc(4.5rem + env(safe-area-inset-bottom, 0px))';
 
-/** iMessage 风格输入栏：空时显示话筒，有文字时显示蓝色发送 */
+/** iMessage-style input bar: mic when empty, blue send when text is present */
 export function ChatInputBar({
   value,
   onChange,
@@ -35,7 +35,7 @@ export function ChatInputBar({
       {isRecording && (
         <div className="mb-2 flex items-center justify-center gap-2">
           <span className="h-2 w-2 animate-pulse rounded-full bg-[#FF3B30]" />
-          <span className="text-[13px] font-medium text-[#FF3B30]">正在录音，点击停止</span>
+          <span className="text-[13px] font-medium text-[#FF3B30]">Recording — tap to stop</span>
         </div>
       )}
 

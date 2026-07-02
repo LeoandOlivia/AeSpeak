@@ -27,16 +27,16 @@ export function HistoryPage() {
       {!conversations?.length ? (
         <div className="flex flex-col items-center py-16 text-center">
           <div className="mb-3 text-5xl">💬</div>
-          <p className="text-[17px] font-semibold text-[var(--color-label)]">暂无对话历史</p>
+          <p className="text-[17px] font-semibold text-[var(--color-label)]">No conversation history</p>
           <p className="mt-1 text-[15px] text-[var(--color-label-secondary)]">
-            完成练习后记录会出现在这里
+            Records appear here after you finish a practice session
           </p>
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="mt-6 text-[17px] font-medium text-[#007AFF]"
+            className="mt-6 font-serif text-[17px] font-medium text-[var(--color-ink)] underline decoration-[var(--color-accent)] decoration-1 underline-offset-2"
           >
-            去练习
+            Start practicing
           </button>
         </div>
       ) : (
@@ -51,12 +51,11 @@ export function HistoryPage() {
               >
                 <div className="flex items-center gap-3 px-4 py-3.5">
                   {art && (
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] text-lg"
-                      style={{ background: art.iconBg }}
-                    >
-                      {art.emoji}
-                    </div>
+                    <img
+                      src={art.imageUrl}
+                      alt=""
+                      className="h-10 w-10 shrink-0 rounded-[10px] object-cover"
+                    />
                   )}
                   <button
                     type="button"
@@ -67,28 +66,28 @@ export function HistoryPage() {
                   >
                     <div className="flex items-center gap-2">
                       <span className="truncate text-[17px] font-medium text-[var(--color-label)]">
-                        {scenario?.title ?? '未知情景'}
+                        {scenario?.title ?? 'Unknown scenario'}
                       </span>
                       {c.status === 'active' && (
                         <span className="shrink-0 rounded-full bg-[#34C759]/15 px-2 py-0.5 text-[11px] font-semibold text-[#34C759]">
-                          进行中
+                          In progress
                         </span>
                       )}
                     </div>
                     <p className="truncate text-[15px] text-[var(--color-label-secondary)]">
-                      {c.lastMessagePreview ?? '（无消息）'}
+                      {c.lastMessagePreview ?? '(No messages)'}
                     </p>
                     <p className="mt-0.5 text-[13px] text-[var(--color-label-tertiary)]">
                       {scenario ? CATEGORY_LABELS[scenario.category] : ''} ·{' '}
-                      {new Date(c.updatedAt).toLocaleString('zh-CN')}
+                      {new Date(c.updatedAt).toLocaleString('en-US')}
                     </p>
                   </button>
                   <button
                     type="button"
-                    onClick={() => void deleteConversation(c.id).then(() => toast.message('已删除'))}
+                    onClick={() => void deleteConversation(c.id).then(() => toast.message('Deleted'))}
                     className="shrink-0 text-[15px] text-[#FF3B30]"
                   >
-                    删除
+                    Delete
                   </button>
                 </div>
               </li>

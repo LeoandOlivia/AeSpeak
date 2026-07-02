@@ -138,11 +138,11 @@ export function SettingsPage() {
 
       loadedRef.current = true;
 
-      toast.success('设置已保存');
+      toast.success('Settings saved');
 
     } catch (e) {
 
-      toast.error(e instanceof Error ? e.message : '保存失败，请重试');
+      toast.error(e instanceof Error ? e.message : 'Save failed, please try again');
 
     }
 
@@ -160,7 +160,7 @@ export function SettingsPage() {
 
     if (s.llmProvider === 'deepseek' && !s.deepseekKey) {
 
-      toast.error('请先填写 DeepSeek API Key');
+      toast.error('Please enter your DeepSeek API Key first');
 
       return;
 
@@ -168,7 +168,7 @@ export function SettingsPage() {
 
     if (s.llmProvider === 'openai' && !s.openaiKey) {
 
-      toast.error('请先填写 OpenAI API Key');
+      toast.error('Please enter your OpenAI API Key first');
 
       return;
 
@@ -178,7 +178,7 @@ export function SettingsPage() {
 
       await validateLlm(s);
 
-      toast.success('对话 API 连通正常', {
+      toast.success('Chat API connected', {
 
         description: `${s.llmProvider === 'deepseek' ? 'DeepSeek' : 'OpenAI'} · ${s.llmModel}`,
 
@@ -186,7 +186,7 @@ export function SettingsPage() {
 
     } catch (e) {
 
-      toast.error(e instanceof Error ? e.message : '验证失败');
+      toast.error(e instanceof Error ? e.message : 'Validation failed');
 
     }
 
@@ -200,7 +200,7 @@ export function SettingsPage() {
 
     if (!s.openaiKey) {
 
-      toast.error('请先填写 OpenAI API Key（Whisper 录音识别）');
+      toast.error('Please enter your OpenAI API Key first (Whisper speech recognition)');
 
       return;
 
@@ -210,15 +210,15 @@ export function SettingsPage() {
 
       await validateStt(s);
 
-      toast.success('Whisper Key 验证通过', {
+      toast.success('Whisper Key verified', {
 
-        description: isNativePlatform() ? '可在下方测试识别' : '完整录音测试请在 Android 真机进行',
+        description: isNativePlatform() ? 'You can test recognition below' : 'Full recording test requires an Android device',
 
       });
 
     } catch (e) {
 
-      toast.error(e instanceof Error ? e.message : '验证失败');
+      toast.error(e instanceof Error ? e.message : 'Validation failed');
 
     }
 
@@ -236,7 +236,7 @@ export function SettingsPage() {
 
       if (s.mockVoice) {
 
-        toast.success('Mock 朗读通过');
+        toast.success('Mock speech passed');
 
         return;
 
@@ -244,7 +244,7 @@ export function SettingsPage() {
 
       if (buf.byteLength === 0) {
 
-        toast.success('朗读成功（Edge/系统降级）');
+        toast.success('Speech succeeded (Edge/system fallback)');
 
         return;
 
@@ -258,7 +258,7 @@ export function SettingsPage() {
 
       await audio.play();
 
-      toast.success('朗读测试成功', {
+      toast.success('Speech test passed', {
 
         description: `${s.ttsProvider === 'openai' ? 'OpenAI TTS' : 'Edge TTS'} · ${s.ttsVoice}`,
 
@@ -266,7 +266,7 @@ export function SettingsPage() {
 
     } catch (e) {
 
-      toast.error(e instanceof Error ? e.message : '朗读测试失败');
+      toast.error(e instanceof Error ? e.message : 'Speech test failed');
 
     }
 
@@ -280,7 +280,7 @@ export function SettingsPage() {
 
     if (s.mockVoice) {
 
-      toast.success('Mock 识别通过', { description: "I'd like a coffee, please." });
+      toast.success('Mock recognition passed', { description: "I'd like a coffee, please." });
 
       return;
 
@@ -288,7 +288,7 @@ export function SettingsPage() {
 
     if (!s.openaiKey) {
 
-      toast.error('请先配置 OpenAI API Key（Whisper）');
+      toast.error('Please configure your OpenAI API Key (Whisper) first');
 
       return;
 
@@ -296,7 +296,7 @@ export function SettingsPage() {
 
     if (!voiceAvailable) {
 
-      toast.message('录音识别请在 Android App 中测试');
+      toast.message('Speech recognition test requires the Android app');
 
       return;
 
@@ -304,7 +304,7 @@ export function SettingsPage() {
 
     if (voiceState === 'idle') {
 
-      toast.message('请说英文…', { description: '再次点击停止并识别' });
+      toast.message('Speak in English…', { description: 'Tap again to stop and transcribe' });
 
       await voiceToggle(() => {});
 
@@ -314,13 +314,13 @@ export function SettingsPage() {
 
     if (voiceState === 'recording') {
 
-      await voiceToggle((text) => toast.success('识别成功', { description: text }));
+      await voiceToggle((text) => toast.success('Transcription successful', { description: text }));
 
       return;
 
     }
 
-    toast.message('识别中…');
+    toast.message('Transcribing…');
 
   };
 
@@ -348,11 +348,11 @@ export function SettingsPage() {
 
           <div>
 
-            <p className="text-sm font-bold text-[var(--color-label)]">API 配置</p>
+            <p className="text-sm font-bold text-[var(--color-label)]">API Configuration</p>
 
             <p className="text-xs text-[var(--color-label-secondary)]">
 
-              配置后即可开始 AI 对话和语音功能
+              Configure APIs to enable AI chat and voice features
 
             </p>
 
@@ -364,7 +364,7 @@ export function SettingsPage() {
 
 
 
-      <SettingsSection title="DeepSeek 对话" icon="💬" description="AI 情景对话使用 DeepSeek（或下方高级里切换 OpenAI）。">
+      <SettingsSection title="DeepSeek Chat" icon="💬" description="Scenario chat uses DeepSeek (or switch to OpenAI under Advanced).">
 
         <Field
 
@@ -390,13 +390,13 @@ export function SettingsPage() {
 
           placeholder="https://api.deepseek.com/v1"
 
-          hint="留空则用官方 api.deepseek.com。走中转则填到 /v1。"
+          hint="Leave empty for official api.deepseek.com. For a relay, enter up to /v1."
 
         />
 
         <Field
 
-          label="对话模型"
+          label="Chat model"
 
           value={form.llmModel}
 
@@ -404,13 +404,13 @@ export function SettingsPage() {
 
           placeholder="deepseek-chat"
 
-          hint="常见：deepseek-chat / deepseek-v4-flash（须小写）"
+          hint="Common: deepseek-chat / deepseek-v4-flash (lowercase required)"
 
         />
 
         <PrimaryButton onClick={() => void handleValidateLlm()} variant="outline" className="w-full">
 
-          验证对话 API
+          Validate chat API
 
         </PrimaryButton>
 
@@ -420,25 +420,25 @@ export function SettingsPage() {
 
       <SettingsSection
 
-        title="语音"
+        title="Voice"
 
         icon="🎙️"
 
-        description="朗读用 Edge TTS。Whisper 识别：Android 真机为正式路径；浏览器 dev 可预览测 Key/API。"
+        description="Speech uses Edge TTS. Whisper: Android device is the production path; browser dev can preview Key/API."
 
       >
 
         <Select
 
-          label="朗读引擎"
+          label="Speech engine"
 
           value={form.ttsProvider}
 
           options={[
 
-            ['edge', 'Edge TTS（免费，推荐）'],
+            ['edge', 'Edge TTS (free, recommended)'],
 
-            ['openai', 'OpenAI TTS（需中转支持）'],
+            ['openai', 'OpenAI TTS (relay required)'],
 
           ]}
 
@@ -466,15 +466,15 @@ export function SettingsPage() {
 
           <Select
 
-            label="TTS 模型"
+            label="TTS model"
 
             value={form.ttsModel}
 
             options={[
 
-              ['tts-1', 'tts-1（快）'],
+              ['tts-1', 'tts-1 (fast)'],
 
-              ['tts-1-hd', 'tts-1-hd（高清）'],
+              ['tts-1-hd', 'tts-1-hd (HD)'],
 
             ]}
 
@@ -486,7 +486,7 @@ export function SettingsPage() {
 
         <Select
 
-          label="朗读音色"
+          label="Voice"
 
           value={form.ttsVoice}
 
@@ -500,7 +500,7 @@ export function SettingsPage() {
 
         <WarmCard padding="sm" className="space-y-3 bg-[var(--color-fill-secondary)]/50">
 
-          <p className="text-xs font-bold text-[var(--color-label)]">Whisper 录音识别</p>
+          <p className="text-xs font-bold text-[var(--color-label)]">Whisper speech recognition</p>
 
           <Field
 
@@ -526,13 +526,13 @@ export function SettingsPage() {
 
             placeholder="https://openrouter.ai/api/v1"
 
-            hint="OpenRouter 填 https://openrouter.ai/api/v1；语音/STT 需账户余额 ≥ $0.50。"
+            hint="OpenRouter: https://openrouter.ai/api/v1. Voice/STT requires account balance ≥ $0.50."
 
           />
 
           <Field
 
-            label="Whisper 模型"
+            label="Whisper model"
 
             value={form.whisperModel}
 
@@ -540,7 +540,7 @@ export function SettingsPage() {
 
             placeholder="openai/whisper-1"
 
-            hint="OpenRouter 用 openai/whisper-1；官方 OpenAI 用 whisper-1。留空则自动选择。"
+            hint="OpenRouter: openai/whisper-1. Official OpenAI: whisper-1. Leave empty to auto-select."
 
           />
 
@@ -556,7 +556,7 @@ export function SettingsPage() {
 
           >
 
-            验证 Whisper Key
+            Validate Whisper Key
 
           </PrimaryButton>
 
@@ -568,7 +568,7 @@ export function SettingsPage() {
 
           <PrimaryButton onClick={() => void handleTestTts()} variant="outline" className="flex-1">
 
-            测试朗读
+            Test speech
 
           </PrimaryButton>
 
@@ -586,7 +586,7 @@ export function SettingsPage() {
 
             >
 
-              {voiceState === 'recording' ? '停止识别' : '测试识别'}
+              {voiceState === 'recording' ? 'Stop' : 'Test recognition'}
 
             </PrimaryButton>
 
@@ -594,7 +594,7 @@ export function SettingsPage() {
 
             <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-[var(--color-separator)] px-2 text-center text-[10px] text-[var(--color-label-secondary)]">
 
-              录音测试需 Android 真机
+              Recording test requires Android device
 
             </div>
 
@@ -606,7 +606,7 @@ export function SettingsPage() {
 
           <p className="text-xs font-semibold text-[#007AFF]">
 
-            {voiceState === 'recording' ? '🎤 录音中…' : '识别中…'}
+            {voiceState === 'recording' ? '🎤 Recording…' : 'Transcribing…'}
 
           </p>
 
@@ -626,7 +626,7 @@ export function SettingsPage() {
 
       >
 
-        {showKey ? '隐藏' : '显示'} Key
+        {showKey ? 'Hide' : 'Show'} Key
 
       </button>
 
@@ -634,7 +634,7 @@ export function SettingsPage() {
 
       <PrimaryButton onClick={() => void handleSave()} variant="primary" className="mb-4 w-full py-3">
 
-        保存设置
+        Save settings
 
       </PrimaryButton>
 
@@ -652,7 +652,7 @@ export function SettingsPage() {
 
         <summary className="cursor-pointer text-sm font-semibold text-[var(--color-label-secondary)]">
 
-          高级选项
+          Advanced options
 
         </summary>
 
@@ -660,15 +660,15 @@ export function SettingsPage() {
 
           <Select
 
-            label="对话引擎"
+            label="Chat engine"
 
             value={form.llmProvider}
 
             options={[
 
-              ['deepseek', 'DeepSeek（默认）'],
+              ['deepseek', 'DeepSeek (default)'],
 
-              ['openai', 'OpenAI（共用 Whisper Key）'],
+              ['openai', 'OpenAI (shares Whisper Key)'],
 
             ]}
 
@@ -690,7 +690,7 @@ export function SettingsPage() {
 
             />
 
-            Mock 语音（测试用，勿在生产开启）
+            Mock voice (testing only — do not enable in production)
 
           </label>
 
