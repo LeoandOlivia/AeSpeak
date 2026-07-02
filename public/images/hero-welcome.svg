@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160" fill="none">
+  <rect width="320" height="160" rx="24" fill="#FFF5EE"/>
+  <circle cx="260" cy="40" r="48" fill="#FFE4D6" opacity="0.6"/>
+  <circle cx="60" cy="120" r="36" fill="#FFD4BC" opacity="0.5"/>
+  <path d="M80 100c20-30 60-40 80-20s40 10 60-10" stroke="#E8875B" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.3"/>
+  <g transform="translate(100, 35)">
+    <rect x="20" y="50" width="80" height="60" rx="12" fill="#E8875B"/>
+    <rect x="28" y="58" width="64" height="44" rx="8" fill="#FFF8F3"/>
+    <circle cx="60" cy="78" r="14" fill="#7BA885"/>
+    <path d="M48 92c4 8 20 8 24 0" stroke="#3D3229" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M54 74c0-3 4-3 6 0M66 74c0-3 4-3 6 0" stroke="#3D3229" stroke-width="2" stroke-linecap="round"/>
+    <path d="M40 50c-8-16 8-28 20-20 8 4 12-4 20-8 16-8 28 8 20 24" fill="#5C4033"/>
+    <ellipse cx="100" cy="70" rx="18" ry="10" fill="#FFD4BC" opacity="0.8"/>
+    <text x="108" y="74" font-family="system-ui" font-size="14" fill="#E8875B">Hi!</text>
+  </g>
+  <g transform="translate(200, 55)">
+    <rect width="56" height="40" rx="8" fill="#7BA885" opacity="0.2"/>
+    <text x="8" y="18" font-family="system-ui" font-size="11" fill="#5A7A62">Hello</text>
+    <text x="8" y="32" font-family="system-ui" font-size="11" fill="#5A7A62">World!</text>
+  </g>
+</svg>

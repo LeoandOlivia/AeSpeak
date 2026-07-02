@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" fill="none">
+  <rect width="200" height="160" fill="none"/>
+  <circle cx="100" cy="65" r="36" fill="#E8F5E9"/>
+  <path d="M88 65l8 8 16-16" stroke="#7BA885" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="100" y="120" text-anchor="middle" font-family="system-ui" font-size="12" fill="#8B7355">hè`Œ</text>
+</svg>

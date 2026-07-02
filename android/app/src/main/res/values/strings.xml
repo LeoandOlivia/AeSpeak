@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">eSpeak</string>
+    <string name="title_activity_main">eSpeak</string>
+    <string name="package_name">com.espeak.app</string>
+    <string name="custom_url_scheme">com.espeak.app</string>
+</resources>
